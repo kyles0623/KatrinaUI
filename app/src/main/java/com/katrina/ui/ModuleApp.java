@@ -36,6 +36,8 @@ public class ModuleApp implements KatrinaModule {
 
     @Override
     public String getError() {
-        return null;
+        return "";
     }
+
+    public MOD_TYPE getModuleType(){ return MOD_TYPE.APP;}
 }

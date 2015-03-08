@@ -1,91 +1,27 @@
 package com.katrina.ui;
 
+import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
-import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.BaseAdapter;
 import android.widget.GridView;
-import android.widget.ImageView;
-import android.widget.Spinner;
-import android.widget.TextView;
+import android.widget.ListView;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class MainUI extends ActionBarActivity {
-    private class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClickListener{
-        private Context mContext;
-        private ArrayList<KatrinaModule> moduleList;
-
-        public ModuleAdapter(Context c){
-            moduleList = new ArrayList<KatrinaModule>();
-            mContext = c;
-        }
-
-        public void addModule(KatrinaModule m){
-            moduleList.add(m);
-        }
-
-        public int getCount() {
-            return moduleList.size();
-        }
-
-        public View getView(int position, View convertView, ViewGroup parent) {
-            if (convertView == null) {
-                convertView = getLayoutInflater().inflate(R.layout.app_icon_ui,null);
-            }
-
-            KatrinaModule mod = moduleList.get(position);
-
-            TextView textView = (TextView) convertView.findViewById(R.id.aText);
-            textView.setText(mod.getName());
-
-            Drawable iImg = mod.getIconImage();
-            if (iImg != null) {
-                ImageView imageView = (ImageView) convertView.findViewById(R.id.aIcon);
-                imageView.setImageDrawable(iImg);
-            }
-
-            return convertView;
-        }
-
-        public long getItemId(int position) { return 0; }
-
-        public Object getItem(int position) {
-            return moduleList.get(position);
-        }
-
-        public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-            KatrinaModule mod = moduleList.get(position);
-            if (mod.doAction(mContext)) {
-                Drawable iImg = mod.getIconImage();
-                if (iImg != null) {
-                    ImageView imageView = (ImageView) v.findViewById(R.id.aIcon);
-                    if (imageView != null) imageView.setImageDrawable(iImg);
-                }
-            }
-        }
-    }
-
+public class MainUI extends Activity implements View.OnClickListener /*,AdapterView.OnItemClickListener*/ {
     public interface Callback {
         public void onEmergency();
     }
 
     private GridView moduleGridView;
-    private Callback cb;
     private ModuleAdapter moduleAdapter;
+    private ListView contactsListView;
+    private ContactsAdapter contactsAdapter;
+
+    private Callback cb;
 
     private class TESTMOD implements KatrinaModule {
         @Override
@@ -100,14 +36,17 @@ public class MainUI extends ActionBarActivity {
 
         @Override
         public boolean doAction(Context c) {
-            Log.i("KatrinaModule.doAction","TEST");
-            return true;
+            Log.i("TESTMOD.doAction","TEST");
+            return false;
         }
 
         @Override
         public String getError() {
-            return null;
+            return "TEST ERROR";
         }
+
+        @Override
+        public MOD_TYPE getModuleType() { return MOD_TYPE.MODULE; }
     }
 
     @Override
@@ -120,18 +59,31 @@ public class MainUI extends ActionBarActivity {
         moduleAdapter = new ModuleAdapter(this);
         moduleGridView.setAdapter(moduleAdapter);
         moduleGridView.setOnItemClickListener(moduleAdapter);
+        moduleGridView.setOnItemLongClickListener(moduleAdapter);
 
-        View v = findViewById(R.id.contact1);
+        ModuleFactory.registerMainUI(this);
+
+        /*contactsListView = (ListView) findViewById(R.id.contactsListView);
+        contactsAdapter = new ContactsAdapter(this);
+        contactsListView.setAdapter(contactsAdapter);
+        contactsListView.setOnItemClickListener(contactsAdapter);*/
+
+        /*View v = findViewById(R.id.contact1);
         TextView tV = (TextView)v.findViewById(R.id.cName);
-        tV.setText("TEST");
+        tV.setText("TEST");*/
 
         /*TESTMOD t = new TESTMOD();
 
-        for (int i=0;i<20;i++){
-            moduleAdapter.addModule(t);
-        }*/
+        for (int i=0;i<20;i++){ moduleAdapter.addModule(t); }*/
 
-        Intent i = new Intent(Intent.ACTION_MAIN, null);
+        /*ContactInfo c1 = new ContactInfo();
+        c1.name = "Test";
+        c1.phone = "(777)-777-7777";
+        c1.photo = null;
+
+        contactsAdapter.add(c1);*/
+
+        /*Intent i = new Intent(Intent.ACTION_MAIN, null);
         i.addCategory(Intent.CATEGORY_LAUNCHER);
 
         PackageManager manager = getPackageManager();
@@ -141,7 +93,36 @@ public class MainUI extends ActionBarActivity {
             Log.i("List of Apps","Label: " + ri.loadLabel(manager).toString() + "  PackageName: " + ri.activityInfo.packageName.toString());
             ModuleApp app = new ModuleApp(ri.loadLabel(manager).toString(),ri.activityInfo.packageName.toString(),ri.activityInfo.loadIcon(manager));
             moduleAdapter.addModule(app);
-        }
+        }*/
+
+        /*Thread appListThread = new Thread(){
+            public void run(){
+                Intent i = new Intent(Intent.ACTION_MAIN, null);
+                i.addCategory(Intent.CATEGORY_LAUNCHER);
+
+                PackageManager manager = getPackageManager();
+
+                List<ResolveInfo> availableActivities = manager.queryIntentActivities(i, 0);
+                for(ResolveInfo ri:availableActivities){
+                    Log.i("List of Apps","Label: " + ri.loadLabel(manager).toString() + "  PackageName: " + ri.activityInfo.packageName.toString());
+                    ModuleApp app = new ModuleApp(ri.loadLabel(manager).toString(),ri.activityInfo.packageName.toString(),ri.activityInfo.loadIcon(manager));
+                    moduleAdapter.addModule(app);
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() { moduleAdapter.notifyDataSetChanged(); }
+                });
+            }
+        };
+        appListThread.start();*/
+    }
+
+    public void addModule(KatrinaModule mod){
+        moduleAdapter.addModule(mod);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() { moduleAdapter.notifyDataSetChanged(); }
+        });
     }
 
     @Override
@@ -166,9 +147,10 @@ public class MainUI extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void onButtonClick(View v){
+    @Override
+    public void onClick(View v) {
         switch (v.getId()){
-            case R.id.contact1:
+            /*case R.id.contact1:
                 Log.i("onButtonClick", "C1");
                 break;
             case R.id.contact2:
@@ -182,7 +164,7 @@ public class MainUI extends ActionBarActivity {
                 break;
             case R.id.contact5:
                 Log.i("onButtonClick", "C5");
-                break;
+                break;*/
             case R.id.apps:
                 Log.i("onButtonClick", "Apps");
                 break;

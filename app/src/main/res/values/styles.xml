@@ -1,8 +1,8 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Customize your theme here. -->
-    </style>
+    <style name="KatrinaTheme" parent="Theme.AppCompat.Light.NoActionBar"></style>
+
+    <style name="KatrinaTheme_MainUI" parent="@android:style/Theme.Wallpaper.NoTitleBar.Fullscreen"></style>
 
 </resources>

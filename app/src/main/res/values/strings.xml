@@ -3,7 +3,9 @@
 
     <string name="app_name">Katrina UI</string>
     <string name="title_activity_main_ui">MainUI</string>
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="button_apps_str">Apps</string>
+    <string name="button_emergency_str">Emergency</string>
+    <string name="button_settings_str">Settings</string>
 
 </resources>
