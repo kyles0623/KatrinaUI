@@ -10,6 +10,18 @@
     <!-- This FrameLayout insets its children based on system windows using
          android:fitsSystemWindows. -->
 
+    <ExpandableListView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/contactsUI_ListView"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="false"
+        android:layout_above="@+id/contactsSave"
+        android:choiceMode="multipleChoice"
+        android:clickable="true"
+        android:drawSelectorOnTop="false" />
+
     <Button
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -20,15 +32,4 @@
         android:layout_alignParentStart="true"
         android:enabled="true" />
 
-    <ExpandableListView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/contactsUI_ListView"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentEnd="false"
-        android:layout_above="@+id/contactsSave"
-        android:choiceMode="singleChoice"
-        android:clickable="true"
-        android:drawSelectorOnTop="false" />
 </RelativeLayout>

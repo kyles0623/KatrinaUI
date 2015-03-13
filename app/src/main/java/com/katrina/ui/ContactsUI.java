@@ -21,24 +21,15 @@ public class ContactsUI extends Activity implements View.OnClickListener {
         setContentView(R.layout.activity_contacts_ui);
 
         ExpandableListView elView = (ExpandableListView)findViewById(R.id.contactsUI_ListView);
-        contactsAdapter = new ContactsAdapter(this);
+        contactsAdapter = new ContactsAdapter(this,getIntent().getIntExtra("maxSelection",-1));
         elView.setAdapter(contactsAdapter);
-        elView.setOnChildClickListener(contactsAdapter);
+        //elView.setOnChildClickListener(contactsAdapter);
     }
 
     @Override
     public void onClick(View v) {
-        //pass data back
-        /*
-        Intent i = new Intent();
-        i.putExtra("result","0");
-        setResult(0,i);
-        */
-
-        //TODO return all selected contacts
-
         Intent i = getIntent();
-        i.putExtra("result","TEST RESULT!!!!");
+        i.putExtra("Contacts",contactsAdapter.getSelectedContacts());
         setResult(Activity.RESULT_OK,i);
         ContactsUI.this.finish();
     }

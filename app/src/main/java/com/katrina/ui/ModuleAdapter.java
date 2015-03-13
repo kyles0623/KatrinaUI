@@ -40,7 +40,7 @@ public class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClic
     }
 
     //Add a module to the list.
-    public void addModule(KatrinaModule m){
+    synchronized public void addModule(KatrinaModule m){
         int position = moduleList.size();
         m.setID(position);
         m.registerKMListener(this);

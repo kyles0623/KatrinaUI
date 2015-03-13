@@ -1,6 +1,7 @@
 package com.katrina.ui;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -10,6 +11,7 @@ import android.graphics.drawable.Drawable;
 import android.media.Image;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,6 +20,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.CheckBox;
+import android.widget.CheckedTextView;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -28,29 +31,39 @@ import java.util.ArrayList;
  * Created by alatnet on 3/7/2015.
  */
 public class ContactsAdapter extends BaseExpandableListAdapter implements ExpandableListView.OnChildClickListener {
-
     private class ContactChild {
         boolean selected = false;
         String number;
         int type;
         View childView;
         CheckBox checkBox;
+        int pos;
     }
     private class ContactGroup {
         String name;
         ArrayList<ContactChild> numbers = new ArrayList<>();
         View groupView;
+        int pos;
     }
 
     private final Context mContext;
     private final LayoutInflater inflater;
+    private final AlertDialog.Builder aBuild;
     private ArrayList<ContactGroup> contactList;
+    private int maxSelection = -1;
+    private int numSelected = 0;
 
     public ContactsAdapter(Context context) {
         this.mContext = context;
+        aBuild = new AlertDialog.Builder(mContext);
         inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         contactList = new ArrayList<>();
         new ContactAsyncTask(mContext).execute();
+    }
+
+    public ContactsAdapter(Context context, int maxSelection) {
+        this(context);
+        this.maxSelection = maxSelection;
     }
 
     @Override
@@ -88,11 +101,34 @@ public class ContactsAdapter extends BaseExpandableListAdapter implements Expand
     public boolean isChildSelectable(int groupPosition, int childPosition) { return true; }
 
     @Override
+    public boolean areAllItemsEnabled() { return true; }
+
+    @Override
     public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
         ContactChild child = contactList.get(groupPosition).numbers.get(childPosition);
         child.selected = !child.selected;
-        child.checkBox.setSelected(child.selected);
-        Log.i("onChildClick", "CLICKED");
+
+        if (child.selected) numSelected++;
+        else numSelected--;
+        if (numSelected <= 0) numSelected = 0;
+
+        if (maxSelection != -1) {
+            if (numSelected >= maxSelection+1) {
+                aBuild.setTitle("Maximum Selection Exceeded.")
+                        .setMessage("The maximum number of contacts you can select is "+maxSelection)
+                        .setPositiveButton("OK",null);
+                aBuild.create().show();
+
+                child.selected = !child.selected;
+                if (child.selected) numSelected++;
+                else numSelected--;
+                if (numSelected <= 0) numSelected = 0;
+                return false;
+            }
+        }
+
+        child.checkBox.setChecked(child.selected);
+        Log.i("onChildClick", "CLICKED g:" + groupPosition + "  c:" + childPosition + "  s:"+child.selected + "  cb:"+child.checkBox.isChecked());
         ((Activity)mContext).runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -107,8 +143,8 @@ public class ContactsAdapter extends BaseExpandableListAdapter implements Expand
         TextView textView = (TextView)view.findViewById(R.id.cName);
         ImageView imageView = (ImageView)view.findViewById(R.id.cImg);
         textView.setText(name);
-        if (photo != null) imageView.setImageURI(photo);
-        else imageView.setImageResource(R.mipmap.unknown);
+        /*if (photo != null) imageView.setImageURI(photo);
+        else */imageView.setImageResource(R.mipmap.unknown);
         return view;
     }
 
@@ -136,6 +172,23 @@ public class ContactsAdapter extends BaseExpandableListAdapter implements Expand
         }
     }
 
+    public Bundle getSelectedContacts(){
+        Bundle ret = new Bundle();
+
+        for (ContactGroup cGroup : this.contactList){
+            for (ContactChild cChild : cGroup.numbers){
+                if (cChild.selected){
+                    Bundle child = new Bundle();
+                    child.putString("Number",cChild.number);
+                    child.putString("Type",getPhoneType(cChild.type));
+                    ret.putBundle(cGroup.name,child);
+                }
+            }
+        }
+
+        return ret;
+    }
+
     private class ContactAsyncTask extends AsyncTask<Void,Integer,Void> {
         private Context cContext;
         private ProgressDialog progressDialog;
@@ -157,6 +210,7 @@ public class ContactsAdapter extends BaseExpandableListAdapter implements Expand
             publishProgress(cur.getPosition(),cur.getCount());
             if (Integer.parseInt(cur.getString(cur.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
                 ContactGroup cGroup = new ContactGroup();
+                cGroup.pos = contactList.size();
                 String id = cur.getString(cur.getColumnIndex(ContactsContract.Contacts._ID));
                 cGroup.name = cur.getString(cur.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
 
@@ -174,13 +228,18 @@ public class ContactsAdapter extends BaseExpandableListAdapter implements Expand
             }
         }
 
-        private void getContactNumber(Cursor pCur,ContactGroup cGroup){
-            ContactChild contactChild = new ContactChild();
+        private void getContactNumber(Cursor pCur, final ContactGroup cGroup){
+            final ContactChild contactChild = new ContactChild();
             contactChild.number = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));;
             contactChild.type = pCur.getInt(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE));;
             contactChild.childView = createChildView(contactChild.type,contactChild.number);
             contactChild.checkBox = (CheckBox)contactChild.childView.findViewById(R.id.cSelect);
+            contactChild.pos = cGroup.numbers.size();
 
+            contactChild.childView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) { onChildClick(null,v,cGroup.pos,contactChild.pos,0); }
+            });
             cGroup.numbers.add(contactChild);
         }
 

@@ -49,6 +49,7 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
 
         //if (firstInit) {
         //Intent i = new Intent(this,ContactsUI.class);
+        //i.putExtra("maxSelection",5);
         //i.putExtra(data);
         //startActivityForResult(i,2000);
         //i.getExtra(data);
@@ -183,13 +184,6 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         }
     }
 
-    //contact slots
-    static private final int PICK_CONTACT_1=1000;
-    static private final int PICK_CONTACT_2=1001;
-    static private final int PICK_CONTACT_3=1002;
-    static private final int PICK_CONTACT_4=1003;
-    static private final int PICK_CONTACT_5=1004;
-
     //using this to have the ability to set a single contact.
     @Override
     public boolean onLongClick(View v) {
@@ -210,23 +204,23 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             switch (v.getId()) {
                 case R.id.contact1:
                     Log.i("onLongClick", "C1");
-                    startActivityForResult(cIntent, PICK_CONTACT_1);
+                    startActivityForResult(cIntent, R.id.contact1);
                     break;
                 case R.id.contact2:
                     Log.i("onLongClick", "C2");
-                    startActivityForResult(cIntent, PICK_CONTACT_2);
+                    startActivityForResult(cIntent, R.id.contact2);
                     break;
                 case R.id.contact3:
                     Log.i("onLongClick", "C3");
-                    startActivityForResult(cIntent, PICK_CONTACT_3);
+                    startActivityForResult(cIntent, R.id.contact3);
                     break;
                 case R.id.contact4:
                     Log.i("onLongClick", "C4");
-                    startActivityForResult(cIntent, PICK_CONTACT_4);
+                    startActivityForResult(cIntent, R.id.contact4);
                     break;
                 case R.id.contact5:
                     Log.i("onLongClick", "C5");
-                    startActivityForResult(cIntent, PICK_CONTACT_5);
+                    startActivityForResult(cIntent, R.id.contact5);
                     break;
             }
         }
@@ -244,30 +238,11 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             /*Log.i("onActivityResult", data.getStringExtra("result"));*/
 
             //change a contact
-            if (requestCode == PICK_CONTACT_1 || requestCode == PICK_CONTACT_2 || requestCode == PICK_CONTACT_3 || requestCode == PICK_CONTACT_4 || requestCode == PICK_CONTACT_5) {
-                View contact=null;
+            if (requestCode == R.id.contact1 || requestCode == R.id.contact2 || requestCode == R.id.contact3 || requestCode == R.id.contact4 || requestCode == R.id.contact5) {
+                View contact=findViewById(requestCode);
                 TextView cName;
                 TextView cPhone;
                 ImageView cImg;
-
-                //get contact slot.
-                switch (requestCode) {
-                    case PICK_CONTACT_1:
-                        contact = findViewById(R.id.contact1);
-                        break;
-                    case PICK_CONTACT_2:
-                        contact = findViewById(R.id.contact2);
-                        break;
-                    case PICK_CONTACT_3:
-                        contact = findViewById(R.id.contact3);
-                        break;
-                    case PICK_CONTACT_4:
-                        contact = findViewById(R.id.contact4);
-                        break;
-                    case PICK_CONTACT_5:
-                        contact = findViewById(R.id.contact5);
-                        break;
-                }
 
                 //set contact data.
                 if (contact != null) {
@@ -346,9 +321,11 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             }
         };
         appListThread.start();*/
-        new AppSyncTask(this).execute();
+        new AppSyncTask(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
+    //figuring out how async tasks work.
+    //apparently it works really well.
     private class AppSyncTask extends AsyncTask<Void,Integer,Void> {
         ProgressDialog progressDialog;
         Context mContext;
@@ -378,7 +355,6 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             int currPos = 0;
 
             for(ResolveInfo ri:availableActivities){
-                //Log.i("List of Apps","Label: " + ri.loadLabel(manager).toString() + "  PackageName: " + ri.activityInfo.packageName.toString());
                 ModuleApp app = new ModuleApp(ri.loadLabel(manager).toString(),ri.activityInfo.packageName.toString(),ri.activityInfo.loadIcon(manager));
                 app.registerEmergencyListener(MainUI.this);
                 moduleAdapter.addModule(app);
