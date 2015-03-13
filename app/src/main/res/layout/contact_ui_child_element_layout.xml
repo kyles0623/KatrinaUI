@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:columnCount="2"
+    android:rowCount="2"
+    android:background="@drawable/button_contact_style"
+    android:clickable="true"
+    android:descendantFocusability="blocksDescendants"
+    android:focusable="false" >
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/cSelect"
+        android:layout_column="0"
+        android:layout_row="0"
+        android:layout_rowSpan="2"
+        android:duplicateParentState="true"
+        android:clickable="true"
+        android:focusable="false" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Type"
+        android:id="@+id/cType"
+        android:layout_row="1"
+        android:layout_column="1"
+        android:duplicateParentState="true"
+        android:clickable="true"
+        android:focusable="false"  />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="(777)-777-7777"
+        android:id="@+id/cNumber"
+        android:layout_row="0"
+        android:layout_column="1"
+        android:duplicateParentState="true"
+        android:clickable="true"
+        android:focusable="false"  />
+</GridLayout>

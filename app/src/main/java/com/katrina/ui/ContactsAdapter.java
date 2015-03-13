@@ -1,51 +1,231 @@
 package com.katrina.ui;
 
+import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
+import android.database.Cursor;
+import android.graphics.drawable.Drawable;
+import android.media.Image;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.provider.ContactsContract;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
+import android.widget.BaseExpandableListAdapter;
+import android.widget.CheckBox;
+import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import java.util.ArrayList;
 
 /**
  * Created by alatnet on 3/7/2015.
  */
-//TODO get a contact list up and running for displaying top 5 contacts.
-public class ContactsAdapter extends ArrayAdapter<ContactInfo> implements AdapterView.OnItemClickListener {
-    private final Context mContext;
-    private final ContactInfo[] contacts = new ContactInfo[5];
-    private final LayoutInflater inflater;
+public class ContactsAdapter extends BaseExpandableListAdapter implements ExpandableListView.OnChildClickListener {
 
-    public ContactsAdapter(Context context/*, ContactInfo[] objects*/) {
-        super(context, R.layout.button_contact_layout/*, objects*/);
-        this.mContext = context;
-        inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
-            /*for (int i=0;i<5;i++){
-                if (i>objects.length) break;
-                contacts[i] = objects[i];
-            }*/
-        for (int i=0;i<5;i++) contacts[i] = new ContactInfo();
+    private class ContactChild {
+        boolean selected = false;
+        String number;
+        int type;
+        View childView;
+        CheckBox checkBox;
+    }
+    private class ContactGroup {
+        String name;
+        ArrayList<ContactChild> numbers = new ArrayList<>();
+        View groupView;
     }
 
-    public View getView(int position, View convertView, ViewGroup parent){
-        if (convertView == null) convertView = inflater.inflate(R.layout.button_contact_layout,null);
+    private final Context mContext;
+    private final LayoutInflater inflater;
+    private ArrayList<ContactGroup> contactList;
 
-        TextView nameTV = (TextView)convertView.findViewById(R.id.cName);
-        TextView phoneTV = (TextView)convertView.findViewById(R.id.cPhone);
-        ImageView photoIV = (ImageView)convertView.findViewById(R.id.cImg);
-
-        nameTV.setText(contacts[position].name);
-        phoneTV.setText(contacts[position].phone);
-        photoIV.setImageDrawable(contacts[position].photo);
-
-        return convertView;
+    public ContactsAdapter(Context context) {
+        this.mContext = context;
+        inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        contactList = new ArrayList<>();
+        new ContactAsyncTask(mContext).execute();
     }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+    public int getGroupCount() { return contactList.size(); }
 
+    @Override
+    public int getChildrenCount(int groupPosition) { return contactList.get(groupPosition).numbers.size(); }
+
+    @Override
+    public Object getGroup(int groupPosition) { return contactList.get(groupPosition).name; }
+
+    @Override
+    public Object getChild(int groupPosition, int childPosition) { return contactList.get(groupPosition).numbers.get(childPosition).number; }
+
+    @Override
+    public long getGroupId(int groupPosition) { return groupPosition; }
+
+    @Override
+    public long getChildId(int groupPosition, int childPosition) { return childPosition; }
+
+    @Override
+    public boolean hasStableIds() { return false; }
+
+    @Override
+    public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) { return contactList.get(groupPosition).groupView; }
+
+    @Override
+    public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
+        ContactChild child = contactList.get(groupPosition).numbers.get(childPosition);
+        child.checkBox.setSelected(child.selected);
+        return child.childView;
     }
+
+    @Override
+    public boolean isChildSelectable(int groupPosition, int childPosition) { return true; }
+
+    @Override
+    public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
+        ContactChild child = contactList.get(groupPosition).numbers.get(childPosition);
+        child.selected = !child.selected;
+        child.checkBox.setSelected(child.selected);
+        Log.i("onChildClick", "CLICKED");
+        ((Activity)mContext).runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                notifyDataSetChanged();
+            }
+        });
+        return false;
+    }
+
+    private View createGroupView(Uri photo, String name){
+        View view = inflater.inflate(R.layout.contact_ui_group_element_layout,null);
+        TextView textView = (TextView)view.findViewById(R.id.cName);
+        ImageView imageView = (ImageView)view.findViewById(R.id.cImg);
+        textView.setText(name);
+        if (photo != null) imageView.setImageURI(photo);
+        else imageView.setImageResource(R.mipmap.unknown);
+        return view;
+    }
+
+    private View createChildView(int type, String number){
+        View view = inflater.inflate(R.layout.contact_ui_child_element_layout,null);
+        TextView typeView = (TextView)view.findViewById(R.id.cType);
+        TextView numberView = (TextView)view.findViewById(R.id.cNumber);
+        typeView.setText(getPhoneType(type));
+        numberView.setText(number);
+        return view;
+    }
+
+    private String getPhoneType(int type){
+        switch (type) {
+            case ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE:
+                return "Mobile";
+            case ContactsContract.CommonDataKinds.Phone.TYPE_HOME:
+                return "Home";
+            case ContactsContract.CommonDataKinds.Phone.TYPE_WORK:
+                return "Work";
+            case ContactsContract.CommonDataKinds.Phone.TYPE_OTHER:
+                return "Other";
+            default:
+                return "Unknown";
+        }
+    }
+
+    private class ContactAsyncTask extends AsyncTask<Void,Integer,Void> {
+        private Context cContext;
+        private ProgressDialog progressDialog;
+
+        public ContactAsyncTask(Context c){ cContext = c; }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog = new ProgressDialog(mContext);
+            progressDialog.setMessage("Loading Contacts...");
+            progressDialog.setCancelable(false);
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            progressDialog.setIndeterminate(false);
+            progressDialog.show();
+        }
+
+        private void getContact(Cursor cur, ContentResolver cr){
+            publishProgress(cur.getPosition(),cur.getCount());
+            if (Integer.parseInt(cur.getString(cur.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
+                ContactGroup cGroup = new ContactGroup();
+                String id = cur.getString(cur.getColumnIndex(ContactsContract.Contacts._ID));
+                cGroup.name = cur.getString(cur.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+
+                cGroup.groupView = createGroupView(ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, Long.parseLong(id)),cGroup.name); //TODO Fix this! doesnt get contact photo!!!
+
+                Cursor pCur = cr.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,null, ContactsContract.CommonDataKinds.Phone.CONTACT_ID +" = ?",new String[]{id}, null);
+                if (pCur.getCount() > 0) {
+                    pCur.moveToFirst();
+                    getContactNumber(pCur, cGroup);
+                    while (pCur.moveToNext()) getContactNumber(pCur, cGroup);
+                }
+                pCur.close();
+
+                contactList.add(cGroup);
+            }
+        }
+
+        private void getContactNumber(Cursor pCur,ContactGroup cGroup){
+            ContactChild contactChild = new ContactChild();
+            contactChild.number = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));;
+            contactChild.type = pCur.getInt(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE));;
+            contactChild.childView = createChildView(contactChild.type,contactChild.number);
+            contactChild.checkBox = (CheckBox)contactChild.childView.findViewById(R.id.cSelect);
+
+            cGroup.numbers.add(contactChild);
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            ContentResolver cr = cContext.getContentResolver();
+            Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
+
+            if (cur.getCount() > 0){
+                cur.moveToFirst();
+                getContact(cur,cr);
+                while (cur.moveToNext()) getContact(cur,cr);
+            }
+            cur.close();
+
+            return null;
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+            progressDialog.dismiss();
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            if (progressDialog.isShowing()) progressDialog.dismiss();
+            notifyDataSetChanged();
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+            progressDialog.setProgress(values[0]);
+            progressDialog.setMax(values[1]);
+        }
+    }
+    /*private static boolean validatePhoneNumber(String phoneNo) {
+        if (phoneNo.matches("\\d{10}")) return true; //validate phone numbers of format "1234567890"
+        else if(phoneNo.matches("\\d{3}[-\\.\\s]\\d{3}[-\\.\\s]\\d{4}")) return true; //validating phone number with -, . or spaces
+        else if(phoneNo.matches("\\d{3}-\\d{3}-\\d{4}\\s(x|(ext))\\d{3,5}")) return true; //validating phone number with extension length from 3 to 5
+        else if(phoneNo.matches("\\(\\d{3}\\)-\\d{3}-\\d{4}")) return true; //validating phone number where area code is in braces ()
+        else if(phoneNo.matches("^\\\\+(?:[0-9] ?){6,14}[0-9]$}")) return true; //validating international phone number where area code is in braces ()
+        else if(phoneNo.matches("^\\\\+[0-9]{1,3}\\\\.[0-9]{4,14}(?:x.+)?$")) return true; //validating international phone number in EPP format where area code is in braces ()
+        else return false; //return false if nothing matches the input
+    }*/
 }

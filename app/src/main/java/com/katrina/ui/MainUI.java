@@ -66,7 +66,7 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         moduleGridView.setOnItemLongClickListener(moduleAdapter);
 
         //set contact's on long click listener.
-        View contact1 = findViewById(R.id.contact1);
+        /*View contact1 = findViewById(R.id.contact1);
         contact1.setOnLongClickListener(this);
         View contact2 = findViewById(R.id.contact2);
         contact2.setOnLongClickListener(this);
@@ -75,7 +75,7 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         View contact4 = findViewById(R.id.contact4);
         contact4.setOnLongClickListener(this);
         View contact5 = findViewById(R.id.contact5);
-        contact5.setOnLongClickListener(this);
+        contact5.setOnLongClickListener(this);*/
 
         /*TESTMOD t = new TESTMOD();
 
@@ -153,8 +153,8 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             //call contact
             case R.id.contact1:
                 Log.i("onClick", "C1");
-                //Intent i = new Intent(this,ContactsUI.class);
-                //startActivityForResult(i,1000);
+                Intent i = new Intent(this,ContactsUI.class);
+                startActivityForResult(i,2000);
                 break;
             case R.id.contact2:
                 Log.i("onClick", "C2");
@@ -358,18 +358,15 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            setProgressBarVisibility(true);
-            setProgressBarIndeterminate(false);
             progressDialog = new ProgressDialog(mContext);
             progressDialog.setMessage("Loading List of Applications...");
             progressDialog.setCancelable(false);
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
             progressDialog.show();
         }
 
         @Override
         protected Void doInBackground(Void... params) {
-            publishProgress(0);
-
             Intent i = new Intent(Intent.ACTION_MAIN, null);
             i.addCategory(Intent.CATEGORY_LAUNCHER);
 
@@ -387,12 +384,12 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
                 moduleAdapter.addModule(app);
 
                 currPos++;
-                publishProgress((int) ((currPos / (float) maxSize) * 100));
+                publishProgress(currPos,maxSize);
 
                 if (isCancelled()) break;
             }
 
-            publishProgress(100);
+            publishProgress(maxSize,maxSize);
             return null;
         }
 
@@ -414,8 +411,8 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         @Override
         protected void onProgressUpdate(Integer... values) {
             super.onProgressUpdate(values);
-            setProgress(values[0]);
             progressDialog.setProgress(values[0]);
+            progressDialog.setMax(values[1]);
         }
     }
 }

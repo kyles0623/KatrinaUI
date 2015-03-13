@@ -67,6 +67,7 @@ public class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClic
 
     //Android stuff.
     public View getView(int position, View convertView, ViewGroup parent) {
+        moduleList.get(position).setID(position);
         return moduleViews.get(position);
         /*View modView = null;
         if (position < moduleViews.size() && position >= 0 && moduleViews.size() != 0) modView = moduleViews.get(position);
