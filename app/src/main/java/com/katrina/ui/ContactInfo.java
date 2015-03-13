@@ -1,14 +1,13 @@
 package com.katrina.ui;
 
-import android.graphics.drawable.Drawable;
-
-import java.io.Serializable;
+import android.net.Uri;
 
 /**
  * Created by alatnet on 3/7/2015.
  */
-public class ContactInfo implements Serializable{
-    public String name = "";
+public class ContactInfo{
+    public String name ="";
     public String phone = "";
-    public Drawable photo = null;
+    public String type = "";
+    public Uri photo = null;
 }

@@ -11,7 +11,7 @@
     android:id="@+id/contactSlot"
     tools:context=".MainUI"
     android:longClickable="false"
-    android:background="@drawable/button_contact_style">
+    android:background="@drawable/button_contact_style_homescreen">
 
     <ImageView
         android:layout_width="64dp"

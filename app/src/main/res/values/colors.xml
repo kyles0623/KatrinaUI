@@ -1,3 +1,4 @@
 <resources>
     <color name="transparent">#00FFFFFF</color>
+    <color name="transparentGrey">#A0A0A0A0</color>
 </resources>

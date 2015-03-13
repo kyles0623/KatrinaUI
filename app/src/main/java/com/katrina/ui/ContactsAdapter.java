@@ -7,8 +7,6 @@ import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.drawable.Drawable;
-import android.media.Image;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -17,13 +15,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.CheckBox;
-import android.widget.CheckedTextView;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.katrina.ui.com.katrina.util.Utilities;
 
 import java.util.ArrayList;
 
@@ -44,6 +42,7 @@ public class ContactsAdapter extends BaseExpandableListAdapter implements Expand
         ArrayList<ContactChild> numbers = new ArrayList<>();
         View groupView;
         int pos;
+        Uri photo;
     }
 
     private final Context mContext;
@@ -58,7 +57,7 @@ public class ContactsAdapter extends BaseExpandableListAdapter implements Expand
         aBuild = new AlertDialog.Builder(mContext);
         inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         contactList = new ArrayList<>();
-        new ContactAsyncTask(mContext).execute();
+        new ContactAsyncTask(mContext).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     public ContactsAdapter(Context context, int maxSelection) {
@@ -143,8 +142,8 @@ public class ContactsAdapter extends BaseExpandableListAdapter implements Expand
         TextView textView = (TextView)view.findViewById(R.id.cName);
         ImageView imageView = (ImageView)view.findViewById(R.id.cImg);
         textView.setText(name);
-        /*if (photo != null) imageView.setImageURI(photo);
-        else */imageView.setImageResource(R.mipmap.unknown);
+        if (photo != null) imageView.setImageURI(photo);
+        else imageView.setImageResource(R.mipmap.unknown);
         return view;
     }
 
@@ -175,13 +174,19 @@ public class ContactsAdapter extends BaseExpandableListAdapter implements Expand
     public Bundle getSelectedContacts(){
         Bundle ret = new Bundle();
 
-        for (ContactGroup cGroup : this.contactList){
+        int currContact = 0;
+        for (int i = 0; i<this.contactList.size() ;i++){
+            ContactGroup cGroup = this.contactList.get(i);
             for (ContactChild cChild : cGroup.numbers){
                 if (cChild.selected){
                     Bundle child = new Bundle();
+                    child.putString("Name",cGroup.name);
                     child.putString("Number",cChild.number);
                     child.putString("Type",getPhoneType(cChild.type));
-                    ret.putBundle(cGroup.name,child);
+                    if (cGroup.photo != null) child.putString("Photo",cGroup.photo.toString());
+                    else child.putString("Photo", "null");
+                    ret.putBundle(""+currContact,child);
+                    currContact++;
                 }
             }
         }
@@ -199,22 +204,26 @@ public class ContactsAdapter extends BaseExpandableListAdapter implements Expand
         protected void onPreExecute() {
             super.onPreExecute();
             progressDialog = new ProgressDialog(mContext);
-            progressDialog.setMessage("Loading Contacts...");
+            progressDialog.setMessage("Preparing");
             progressDialog.setCancelable(false);
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-            progressDialog.setIndeterminate(false);
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            progressDialog.setIndeterminate(true);
             progressDialog.show();
         }
 
         private void getContact(Cursor cur, ContentResolver cr){
-            publishProgress(cur.getPosition(),cur.getCount());
+            publishProgress(cur.getPosition(),cur.getCount(),0);
             if (Integer.parseInt(cur.getString(cur.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
                 ContactGroup cGroup = new ContactGroup();
                 cGroup.pos = contactList.size();
                 String id = cur.getString(cur.getColumnIndex(ContactsContract.Contacts._ID));
                 cGroup.name = cur.getString(cur.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
 
-                cGroup.groupView = createGroupView(ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, Long.parseLong(id)),cGroup.name); //TODO Fix this! doesnt get contact photo!!!
+                //Uri photoUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, Long.parseLong(id));
+
+                cGroup.photo = Utilities.checkUriExists(cContext,getPhotoUri(cr,Long.parseLong(id)));
+
+                cGroup.groupView = createGroupView(cGroup.photo, cGroup.name);
 
                 Cursor pCur = cr.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,null, ContactsContract.CommonDataKinds.Phone.CONTACT_ID +" = ?",new String[]{id}, null);
                 if (pCur.getCount() > 0) {
@@ -228,10 +237,42 @@ public class ContactsAdapter extends BaseExpandableListAdapter implements Expand
             }
         }
 
+        private Uri getPhotoUri(ContentResolver contentResolver, long contactId) {
+            try {
+                Cursor cursor = contentResolver
+                        .query(ContactsContract.Data.CONTENT_URI,
+                                null,
+                                ContactsContract.Data.CONTACT_ID
+                                        + "="
+                                        + contactId
+                                        + " AND "
+                                        + ContactsContract.Data.MIMETYPE
+                                        + "='"
+                                        + ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE
+                                        + "'", null, null);
+
+                if (cursor != null) {
+                    if (!cursor.moveToFirst()) {
+                        cursor.close();
+                        return null; // no photo
+                    }
+                } else {
+                    return null; // error in cursor process
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+
+            Uri person = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, contactId);
+            return Uri.withAppendedPath(person, ContactsContract.Contacts.Photo.CONTENT_DIRECTORY);
+        }
+
         private void getContactNumber(Cursor pCur, final ContactGroup cGroup){
             final ContactChild contactChild = new ContactChild();
-            contactChild.number = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));;
-            contactChild.type = pCur.getInt(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE));;
+            contactChild.number = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+            contactChild.type = pCur.getInt(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE));
             contactChild.childView = createChildView(contactChild.type,contactChild.number);
             contactChild.checkBox = (CheckBox)contactChild.childView.findViewById(R.id.cSelect);
             contactChild.pos = cGroup.numbers.size();
@@ -249,6 +290,7 @@ public class ContactsAdapter extends BaseExpandableListAdapter implements Expand
             Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
 
             if (cur.getCount() > 0){
+                publishProgress(0,cur.getCount(),1);
                 cur.moveToFirst();
                 getContact(cur,cr);
                 while (cur.moveToNext()) getContact(cur,cr);
@@ -276,6 +318,15 @@ public class ContactsAdapter extends BaseExpandableListAdapter implements Expand
             super.onProgressUpdate(values);
             progressDialog.setProgress(values[0]);
             progressDialog.setMax(values[1]);
+            if (values[2] == 1) {
+                progressDialog.dismiss();
+                progressDialog = new ProgressDialog(mContext);
+                progressDialog.setMessage("Loading Contacts...");
+                progressDialog.setCancelable(false);
+                progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                progressDialog.setIndeterminate(false);
+                progressDialog.show();
+            }
         }
     }
     /*private static boolean validatePhoneNumber(String phoneNo) {

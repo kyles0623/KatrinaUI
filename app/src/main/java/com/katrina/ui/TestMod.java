@@ -16,9 +16,6 @@ public class TestMod implements KatrinaModule {
     }
 
     @Override
-    public boolean changeIconImage() { return false; }
-
-    @Override
     public String getName() {
         return "TEST MOD";
     }

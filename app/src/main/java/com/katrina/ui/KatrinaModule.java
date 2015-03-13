@@ -3,15 +3,12 @@ package com.katrina.ui;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 
-import java.io.Serializable;
-
 /**
  * Created by Alexander on 2/27/2015.
  */
 public interface KatrinaModule {
     enum MOD_TYPE{ MODULE, APP, MISC }
     public Drawable getIconImage(); //set a module's displayed image.
-    public boolean changeIconImage(); //return true to change the icon image.
     public String getName();  //get the module's name.
     public boolean doAction(Context c); //execute custom code.
     public String getError(); //Clear error after being called.

@@ -24,9 +24,6 @@ public class ModuleApp implements KatrinaModule {
     }
 
     @Override
-    public boolean changeIconImage() { return false; }
-
-    @Override
     public String getName() {
         return this.label;
     }
