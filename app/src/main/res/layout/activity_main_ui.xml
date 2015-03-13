@@ -1,9 +1,10 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="fill_parent"
+    android:layout_height="fill_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin" tools:context="com.katrina.ui.MainUI">
+    android:paddingBottom="@dimen/activity_vertical_margin" tools:context="com.katrina.ui.MainUI"
+    android:background="#ff808080">
 
     <LinearLayout
         android:orientation="vertical"
@@ -19,27 +20,32 @@
         <include
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            layout="@layout/view_contacts_ui" />
+            layout="@layout/button_contact_layout"
+            android:id="@+id/contact1" />
 
         <include
-            layout="@layout/view_contacts_ui"
+            layout="@layout/button_contact_layout"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:id="@+id/contact2" />
 
         <include
-            layout="@layout/view_contacts_ui"
+            layout="@layout/button_contact_layout"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:id="@+id/contact3" />
 
         <include
-            layout="@layout/view_contacts_ui"
+            layout="@layout/button_contact_layout"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:id="@+id/contact4" />
 
         <include
-            layout="@layout/view_contacts_ui"
+            layout="@layout/button_contact_layout"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:id="@+id/contact5" />
     </LinearLayout>
 
     <GridView

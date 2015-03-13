@@ -2,7 +2,23 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.katrina.ui" >
 
-    <!--<uses-permission android:name="android.permission.READ_CONTACTS" />-->
+    <!-- Used to read contacts -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!-- Used to be able to send outgoing calls -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <!-- Possible to send out emergency calls? -->
+    <!-- Needs root -->
+    <!-- <uses-permission android:name="android.permission.CALL_PRIVILEGED" /> -->
+    <!-- Used to check body sensors, possibly with a module? -->
+    <uses-permission android:name="android.permission.BODY_SENSORS" />
+    <!-- Flashlight -->
+    <uses-permission android:name="android.permission.FLASHLIGHT" />
+    <!-- Send SMS's -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <!-- Write SMS's -->
+    <uses-permission android:name="android.permission.WRITE_SMS" />
+    <!-- Get location of phone -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -13,17 +29,24 @@
         <!-- Home screen -->
         <activity
             android:name=".MainUI"
+            android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_main_ui"
             android:screenOrientation="portrait"
-            android:configChanges="orientation|keyboardHidden"
-            android:launchMode="singleTask"
             android:stateNotNeeded="true"
-            android:theme="@style/KatrinaTheme_MainUI" > <!-- android:theme="@android:style/Theme.Wallpaper.NoTitleBar.Fullscreen" -->
+            android:theme="@style/FullscreenTheme" > <!-- android:theme="@android:style/Theme.Wallpaper.NoTitleBar.Fullscreen" android:launchMode="singleTop"-->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <!--<category android:name="android.intent.category.HOME" />-->
+                <!-- <category android:name="android.intent.category.HOME" /> --> <!-- uncomment this to set the program as a launcher. commented only for debugging. -->
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".ContactsUI"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_contacts_ui"
+            android:screenOrientation="portrait"
+            android:stateNotNeeded="true"
+            android:theme="@style/FullscreenTheme" >
         </activity>
     </application>
 

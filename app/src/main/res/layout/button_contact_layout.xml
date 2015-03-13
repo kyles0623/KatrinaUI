@@ -10,7 +10,8 @@
     android:onClick="onClick"
     android:id="@+id/contactSlot"
     tools:context=".MainUI"
-    android:longClickable="false">
+    android:longClickable="false"
+    android:background="@drawable/button_contact_style">
 
     <ImageView
         android:layout_width="64dp"
@@ -22,20 +23,22 @@
         android:layout_columnSpan="1"
         android:src="@mipmap/unknown"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true" />
+        android:layout_alignParentTop="true"
+        android:duplicateParentState="true" />
 
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Name"
+        android:text="Set Contact"
         android:id="@+id/cName"
         android:layout_row="0"
         android:layout_column="1"
         android:layout_gravity="left|center"
         android:layout_alignParentTop="true"
         android:layout_toEndOf="@+id/cImg"
-        android:layout_above="@+id/cPhone" />
+        android:layout_above="@+id/cPhone"
+        android:duplicateParentState="true" />
 
     <TextView
         android:layout_width="fill_parent"
@@ -47,6 +50,7 @@
         android:layout_column="1"
         android:layout_gravity="left"
         android:layout_alignBottom="@+id/cImg"
-        android:layout_toEndOf="@+id/cImg" />
+        android:layout_toEndOf="@+id/cImg"
+        android:duplicateParentState="true" />
 
 </RelativeLayout>

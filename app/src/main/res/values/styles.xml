@@ -3,6 +3,6 @@
     <!-- Base application theme. -->
     <style name="KatrinaTheme" parent="Theme.AppCompat.Light.NoActionBar"></style>
 
-    <style name="KatrinaTheme_MainUI" parent="@android:style/Theme.Wallpaper.NoTitleBar.Fullscreen"></style>
+    <style name="FullscreenTheme" parent="android:Theme.DeviceDefault.NoActionBar.Fullscreen"></style> <!-- Theme.Wallpaper.NoTitleBar.Fullscreen -->
 
 </resources>

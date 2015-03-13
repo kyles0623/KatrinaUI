@@ -12,13 +12,14 @@ import android.widget.TextView;
 /**
  * Created by alatnet on 3/7/2015.
  */
+//TODO get a contact list up and running for displaying top 5 contacts.
 public class ContactsAdapter extends ArrayAdapter<ContactInfo> implements AdapterView.OnItemClickListener {
     private final Context mContext;
     private final ContactInfo[] contacts = new ContactInfo[5];
     private final LayoutInflater inflater;
 
     public ContactsAdapter(Context context/*, ContactInfo[] objects*/) {
-        super(context, R.layout.view_contacts_ui/*, objects*/);
+        super(context, R.layout.button_contact_layout/*, objects*/);
         this.mContext = context;
         inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
@@ -30,7 +31,7 @@ public class ContactsAdapter extends ArrayAdapter<ContactInfo> implements Adapte
     }
 
     public View getView(int position, View convertView, ViewGroup parent){
-        if (convertView == null) convertView = inflater.inflate(R.layout.view_contacts_ui,null);
+        if (convertView == null) convertView = inflater.inflate(R.layout.button_contact_layout,null);
 
         TextView nameTV = (TextView)convertView.findViewById(R.id.cName);
         TextView phoneTV = (TextView)convertView.findViewById(R.id.cPhone);
