@@ -13,6 +13,9 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.katrina.modules.KatrinaModule;
+import com.katrina.modules.KatrinaModuleListener;
+
 import java.util.ArrayList;
 
 /**
@@ -20,15 +23,25 @@ import java.util.ArrayList;
  */
 
 public class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, KatrinaModuleListener {
+    private class ModuleView {
+        public final KatrinaModule mod;
+        public final View view;
+
+        public ModuleView(KatrinaModule m, View v){
+            mod = m;
+            view = v;
+        }
+    }
+
     private final Context mContext;
-    private final ArrayList<KatrinaModule> moduleList;
-    private final ArrayList<View> moduleViews;
+    private final ArrayList<ModuleView> moduleList;
+    //private final ArrayList<View> moduleViews;
     private final AlertDialog.Builder aBuild;
     private final LayoutInflater inflater;
 
     public ModuleAdapter(Context c){
         moduleList = new ArrayList<>();
-        moduleViews = new ArrayList<>();
+        //moduleViews = new ArrayList<>();
         mContext = c;
         aBuild = new AlertDialog.Builder(mContext);
         inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -39,8 +52,8 @@ public class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClic
         int position = moduleList.size();
         m.setID(position);
         m.registerKMListener(this);
-        moduleViews.add(createModView(m));
-        moduleList.add(m);
+        //moduleViews.add(createModView(m));
+        moduleList.add(new ModuleView(m,createModView(m)));
     }
 
     //get the number of added modules.
@@ -62,8 +75,8 @@ public class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClic
 
     //Android stuff.
     public View getView(int position, View convertView, ViewGroup parent) {
-        moduleList.get(position).setID(position);
-        return moduleViews.get(position);
+        moduleList.get(position).mod.setID(position);
+        return moduleList.get(position).view;
         /*View modView = null;
         if (position < moduleViews.size() && position >= 0 && moduleViews.size() != 0) modView = moduleViews.get(position);
 
@@ -102,7 +115,7 @@ public class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClic
     //Android stuff.
     //Used to execute a module's custom code.
     public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-        KatrinaModule mod = moduleList.get(position);
+        KatrinaModule mod = moduleList.get(position).mod;
         if (!mod.doAction(mContext)) {
             aBuild.setMessage(mod.getError())
                     .setTitle(mod.getName() + " Error!");
@@ -116,7 +129,7 @@ public class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClic
     //Used to remove APK apps from the module list.
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
-        KatrinaModule mod = moduleList.get(position);
+        KatrinaModule mod = moduleList.get(position).mod;
 
         if (mod.getModuleType() == KatrinaModule.MOD_TYPE.APP) {
             aBuild.setTitle("Remove " + mod.getName() + " from Home Screen.")
@@ -125,7 +138,7 @@ public class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClic
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             moduleList.remove(position);
-                            moduleViews.remove(position);
+                            //moduleViews.remove(position);
                             ((Activity)mContext).runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {

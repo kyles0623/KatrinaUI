@@ -1,4 +1,4 @@
-package com.katrina.ui;
+package com.katrina.modules;
 
 /**
  * Created by alatnet on 3/10/2015.

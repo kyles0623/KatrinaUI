@@ -1,8 +1,0 @@
-<resources>
-
-    <!-- Base application theme. -->
-    <style name="KatrinaTheme" parent="Theme.AppCompat.Light.NoActionBar" />
-
-    <style name="FullscreenTheme" parent="android:Theme.DeviceDefault.Wallpaper.NoTitleBar" /> <!-- Theme.Wallpaper.NoTitleBar.Fullscreen -->
-
-</resources>

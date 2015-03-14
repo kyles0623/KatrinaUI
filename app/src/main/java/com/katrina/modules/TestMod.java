@@ -4,10 +4,6 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 
-import com.katrina.ui.EmergencyListener;
-import com.katrina.ui.KatrinaModule;
-import com.katrina.ui.KatrinaModuleListener;
-
 /**
  * Created by alatnet on 3/8/2015.
  */
@@ -43,9 +39,7 @@ public class TestMod implements KatrinaModule {
     public void setID(int id) {}
 
     @Override
-    public void registerEmergencyListener(EmergencyListener emergencyListener) {
-        this.emergencyListener = emergencyListener;
-    }
+    public void registerEmergencyListener(EmergencyListener emergencyListener) { this.emergencyListener = emergencyListener; }
 
     @Override
     public void registerKMListener(KatrinaModuleListener kmListener) {}

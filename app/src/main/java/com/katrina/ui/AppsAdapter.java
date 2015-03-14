@@ -20,25 +20,34 @@ import java.util.ArrayList;
  * Created by alatnet on 3/13/2015.
  */
 public class AppsAdapter extends BaseAdapter implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
+    private class ModuleView {
+        public final ModuleApp app;
+        public final View view;
+
+        public ModuleView(ModuleApp a, View v){
+            app = a;
+            view = v;
+        }
+    }
     private final ModuleAdapter moduleAdapter;
     private final Context mContext;
-    private final ArrayList<ModuleApp> appList;
-    private final ArrayList<View> appViews;
+    private final ArrayList<ModuleView> appList;
+    //private final ArrayList<View> appViews;
     private final AlertDialog.Builder aBuild;
     private final LayoutInflater inflater;
 
     public AppsAdapter(Context c, ModuleAdapter m){
         moduleAdapter = m;
         appList = new ArrayList<>();
-        appViews = new ArrayList<>();
+        //appViews = new ArrayList<>();
         mContext = c;
         aBuild = new AlertDialog.Builder(mContext);
         inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
     synchronized public void addModule(ModuleApp m){
-        appViews.add(createModView(m));
-        appList.add(m);
+        //appViews.add(createModView(m));
+        appList.add(new ModuleView(m,createModView(m)));
     }
 
     private View createModView(ModuleApp mod){
@@ -63,14 +72,14 @@ public class AppsAdapter extends BaseAdapter implements AdapterView.OnItemClickL
     public long getItemId(int position) { return position; }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) { return appViews.get(position); }
+    public View getView(int position, View convertView, ViewGroup parent) { return appList.get(position).view; }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) { appList.get(position).doAction(mContext); }
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) { appList.get(position).app.doAction(mContext); }
 
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-        final ModuleApp mod = appList.get(position);
+        final ModuleApp mod = appList.get(position).app;
         aBuild.setTitle("Add to Home Screen")
                 .setMessage("Do you wish to add " + mod.getName() + " to your Home Screen?")
                 .setNegativeButton("No",null)

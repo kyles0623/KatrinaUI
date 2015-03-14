@@ -1,4 +1,4 @@
-package com.katrina.ui;
+package com.katrina.modules;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;

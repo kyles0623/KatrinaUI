@@ -26,6 +26,8 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.katrina.modules.EmergencyListener;
+import com.katrina.modules.KatrinaModule;
 import com.katrina.modules.ModuleApp;
 import com.katrina.util.Utilities;
 
