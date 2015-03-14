@@ -33,4 +33,6 @@ public class Utilities {
 
         return mUri;
     }
+
+    public static final boolean DEBUG = true;
 }

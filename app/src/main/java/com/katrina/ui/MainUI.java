@@ -16,11 +16,13 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.katrina.ui.com.katrina.util.Utilities;
@@ -30,11 +32,14 @@ import java.util.List;
 public class MainUI extends Activity implements View.OnClickListener, View.OnLongClickListener, EmergencyListener {
     private GridView moduleGridView;  //Grid list of modules and APK apps on home screen.
     private ModuleAdapter moduleAdapter; //adapter to manage the modules displayed on the home screen.
-    /*private ListView contactsListView;
-    private ContactsAdapter contactsAdapter;*/
+    private ListView appsListView;
+    private AppsAdapter appsAdapter;
     private AlertDialog.Builder aBuild;
     private ContactInfo[] contactInfo = new ContactInfo[5];
     private boolean firstInit = true;
+
+    private View mainUI = null;
+    private View appUI = null;
 
     public MainUI(){
         super();
@@ -44,7 +49,11 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main_ui);
+
+        LayoutInflater layoutInflater = getLayoutInflater();
+        mainUI = layoutInflater.inflate(R.layout.activity_main_ui,null);
+        appUI = layoutInflater.inflate(R.layout.activity_main_ui_appslist,null);
+        setContentView(mainUI);
 
         aBuild = new AlertDialog.Builder(this);
 
@@ -72,33 +81,42 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             e.commit();
         }else{
             firstInit = false;
+            clearContacts();
             loadContacts(prefs);
         }
 
         //setup the module list on the home screen.
-        moduleGridView = (GridView) findViewById(R.id.moduleGridView);
+        moduleGridView = (GridView) mainUI.findViewById(R.id.moduleGridView);
         moduleAdapter = new ModuleAdapter(this);
         moduleGridView.setAdapter(moduleAdapter);
         moduleGridView.setOnItemClickListener(moduleAdapter);
         moduleGridView.setOnItemLongClickListener(moduleAdapter);
 
+        //setup the app list.
+        appsListView = (ListView) appUI.findViewById(R.id.appListView);
+        appsAdapter = new AppsAdapter(this,moduleAdapter);
+        appsListView.setAdapter(appsAdapter);
+        appsListView.setOnItemClickListener(appsAdapter);
+        appsListView.setOnItemLongClickListener(appsAdapter);
+
         //set contact's on long click listener.
-        /*View contact1 = findViewById(R.id.contact1);
+        View contact1 = mainUI.findViewById(R.id.contact1);
         contact1.setOnLongClickListener(this);
-        View contact2 = findViewById(R.id.contact2);
+        View contact2 = mainUI.findViewById(R.id.contact2);
         contact2.setOnLongClickListener(this);
-        View contact3 = findViewById(R.id.contact3);
+        View contact3 = mainUI.findViewById(R.id.contact3);
         contact3.setOnLongClickListener(this);
-        View contact4 = findViewById(R.id.contact4);
+        View contact4 = mainUI.findViewById(R.id.contact4);
         contact4.setOnLongClickListener(this);
-        View contact5 = findViewById(R.id.contact5);
-        contact5.setOnLongClickListener(this);*/
+        View contact5 = mainUI.findViewById(R.id.contact5);
+        contact5.setOnLongClickListener(this);
 
         /*TESTMOD t = new TESTMOD();
 
         for (int i=0;i<20;i++){ moduleAdapter.addModule(t); }*/
 
-        addAppsToHomeScreen();
+        //add apps to app list
+        new AppSyncTask(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     @Override
@@ -139,19 +157,19 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
 
             switch(i+1){
                 case 1:
-                    contact=findViewById(R.id.contact1);
+                    contact=mainUI.findViewById(R.id.contact1);
                     break;
                 case 2:
-                    contact=findViewById(R.id.contact2);
+                    contact=mainUI.findViewById(R.id.contact2);
                     break;
                 case 3:
-                    contact=findViewById(R.id.contact3);
+                    contact=mainUI.findViewById(R.id.contact3);
                     break;
                 case 4:
-                    contact=findViewById(R.id.contact4);
+                    contact=mainUI.findViewById(R.id.contact4);
                     break;
                 case 5:
-                    contact=findViewById(R.id.contact5);
+                    contact=mainUI.findViewById(R.id.contact5);
                     break;
             }
 
@@ -172,8 +190,50 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         }
     }
 
+    private void clearContact(int slot){
+        contactInfo[slot].phone = "";
+        contactInfo[slot].name = "";
+        contactInfo[slot].type = "";
+        contactInfo[slot].photo = null;
+
+        View contact=null;
+        TextView cName;
+        TextView cPhone;
+        ImageView cImg;
+
+        switch(slot+1){
+            case 1:
+                contact=mainUI.findViewById(R.id.contact1);
+                break;
+            case 2:
+                contact=mainUI.findViewById(R.id.contact2);
+                break;
+            case 3:
+                contact=mainUI.findViewById(R.id.contact3);
+                break;
+            case 4:
+                contact=mainUI.findViewById(R.id.contact4);
+                break;
+            case 5:
+                contact=mainUI.findViewById(R.id.contact5);
+                break;
+        }
+
+        if (contact != null) {
+            cName = (TextView) contact.findViewById(R.id.cName);
+            cPhone = (TextView) contact.findViewById(R.id.cPhone);
+            cImg = (ImageView) contact.findViewById(R.id.cImg);
+
+            cName.setText("Set Contact");
+            cPhone.setText("(777)-777-7777");
+            cImg.setImageResource(R.mipmap.unknown);
+        }
+    }
+
+    private void clearContacts(){ for (int i=0;i<contactInfo.length;i++) clearContact(i); }
+
     //add a module to the home screen.
-    public void addModule(KatrinaModule mod){
+    /*public void addModule(KatrinaModule mod){
         moduleAdapter.addModule(mod);
         runOnUiThread(new Runnable() {
             @Override
@@ -181,7 +241,7 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
                 moduleAdapter.notifyDataSetChanged();
             }
         });
-    }
+    }*/
 
     //Android stuff.
     //What the heck does this even do?
@@ -214,12 +274,17 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
     @Override
     public void onClick(View v) {
         switch (v.getId()){
-            //call contact
+            case R.id.apps:
+                setContentView(appUI);
+                break;
+            case R.id.backToMain:
+                setContentView(mainUI);
+                break;
+            /*//call contact
             case R.id.contact1:
                 Log.i("onClick", "C1");
-                /*Intent i = new Intent(this,ContactsUI.class);
-                startActivityForResult(i,2000);
-                */
+                //Intent i = new Intent(this,ContactsUI.class);
+                //startActivityForResult(i,2000);
                 break;
             case R.id.contact2:
                 Log.i("onClick", "C2");
@@ -244,13 +309,32 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             //open settings activity
             case R.id.settings:
                 Log.i("onClick", "Settings");
-                break;
+                break;*/
         }
     }
 
     //using this to have the ability to set a single contact.
     @Override
     public boolean onLongClick(View v) {
+        switch (v.getId()){
+            case R.id.contact1:
+                contactInfo[0].call(this);
+                break;
+            case R.id.contact2:
+                contactInfo[1].call(this);
+                break;
+            case R.id.contact3:
+                contactInfo[2].call(this);
+                break;
+            case R.id.contact4:
+                contactInfo[3].call(this);
+                break;
+            case R.id.contact5:
+                contactInfo[4].call(this);
+                break;
+        }
+
+        /*
         //setup intent.
         Intent cIntent = null;
         switch (v.getId()){
@@ -287,7 +371,7 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
                     startActivityForResult(cIntent, R.id.contact5);
                     break;
             }
-        }
+        }*/
         return false;
     }
 
@@ -303,6 +387,7 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
 
             switch (requestCode){
                 case R.id.ContactSelection:
+                    clearContacts();
                     Bundle contacts = data.getBundleExtra("Contacts");
                     if (contacts != null){
                         int currContact = 1;
@@ -315,23 +400,23 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
                             Bundle contactData = contacts.getBundle(key);
                             switch(currContact){
                                 case 1:
-                                    contact=findViewById(R.id.contact1);
+                                    contact=mainUI.findViewById(R.id.contact1);
                                     Log.i("onActivityResult","Setting contact 1");
                                     break;
                                 case 2:
-                                    contact=findViewById(R.id.contact2);
+                                    contact=mainUI.findViewById(R.id.contact2);
                                     Log.i("onActivityResult","Setting contact 2");
                                     break;
                                 case 3:
-                                    contact=findViewById(R.id.contact3);
+                                    contact=mainUI.findViewById(R.id.contact3);
                                     Log.i("onActivityResult","Setting contact 3");
                                     break;
                                 case 4:
-                                    contact=findViewById(R.id.contact4);
+                                    contact=mainUI.findViewById(R.id.contact4);
                                     Log.i("onActivityResult","Setting contact 4");
                                     break;
                                 case 5:
-                                    contact=findViewById(R.id.contact5);
+                                    contact=mainUI.findViewById(R.id.contact5);
                                     Log.i("onActivityResult","Setting contact 5");
                                     break;
                             }
@@ -369,7 +454,7 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
                 case R.id.contact3:
                 case R.id.contact4:
                 case R.id.contact5:
-                    View contact=findViewById(requestCode);
+                    View contact=mainUI.findViewById(requestCode);
                     TextView cName;
                     TextView cPhone;
                     ImageView cImg;
@@ -428,34 +513,6 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         Log.i("onEmergency","Emergency function called!");
     }
 
-    //add all applications installed to phone to homescreen.
-    //NOTE this is just for testing out the gridview section.
-    private void addAppsToHomeScreen(){
-        /*Thread appListThread = new Thread(){
-            public void run(){
-                Intent i = new Intent(Intent.ACTION_MAIN, null);
-                i.addCategory(Intent.CATEGORY_LAUNCHER);
-
-                PackageManager manager = getPackageManager();
-
-                List<ResolveInfo> availableActivities = manager.queryIntentActivities(i, 0);
-                for(ResolveInfo ri:availableActivities){
-                    //Log.i("List of Apps","Label: " + ri.loadLabel(manager).toString() + "  PackageName: " + ri.activityInfo.packageName.toString());
-                    ModuleApp app = new ModuleApp(ri.loadLabel(manager).toString(),ri.activityInfo.packageName.toString(),ri.activityInfo.loadIcon(manager));
-                    app.registerEmergencyListener(MainUI.this);
-                    moduleAdapter.addModule(app);
-                }
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() { moduleAdapter.notifyDataSetChanged(); }
-                });
-            }
-        };
-        appListThread.start();*/
-        new AppSyncTask(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-    }
-
-    //figuring out how async tasks work.
     //apparently it works really well.
     private class AppSyncTask extends AsyncTask<Void,Integer,Void> {
         ProgressDialog progressDialog;
@@ -467,10 +524,10 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         protected void onPreExecute() {
             super.onPreExecute();
             progressDialog = new ProgressDialog(mContext);
-            progressDialog.setMessage("Preparing to load list of applications...");
+            progressDialog.setMessage("Loading List of Applications...");
             progressDialog.setCancelable(false);
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            progressDialog.setIndeterminate(true);
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            progressDialog.setIndeterminate(false);
             progressDialog.show();
         }
 
@@ -485,21 +542,19 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
 
             int maxSize = availableActivities.size();
             int currPos = 0;
-            publishProgress(currPos,maxSize,1);
+            publishProgress(currPos,maxSize);
 
             for(ResolveInfo ri:availableActivities){
                 ModuleApp app = new ModuleApp(ri.loadLabel(manager).toString(),ri.activityInfo.packageName,ri.activityInfo.loadIcon(manager));
-                app.registerEmergencyListener(MainUI.this);
-                app.registerKMListener(MainUI.this.moduleAdapter);
-                moduleAdapter.addModule(app);
+                appsAdapter.addModule(app);
 
                 currPos++;
-                publishProgress(currPos,maxSize,0);
+                publishProgress(currPos,maxSize);
 
                 if (isCancelled()) break;
             }
 
-            publishProgress(maxSize,maxSize,0);
+            publishProgress(maxSize,maxSize);
             return null;
         }
 
@@ -515,7 +570,7 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             if (progressDialog.isShowing()) {
                 progressDialog.dismiss();
             }
-            moduleAdapter.notifyDataSetChanged();
+            appsAdapter.notifyDataSetChanged();
         }
 
         @Override
@@ -523,16 +578,6 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             super.onProgressUpdate(values);
             progressDialog.setProgress(values[0]);
             progressDialog.setMax(values[1]);
-
-            if (values[2] == 1){
-                progressDialog.dismiss();
-                progressDialog = new ProgressDialog(mContext);
-                progressDialog.setMessage("Loading List of Applications...");
-                progressDialog.setCancelable(false);
-                progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                progressDialog.setIndeterminate(false);
-                progressDialog.show();
-            }
         }
     }
 }
