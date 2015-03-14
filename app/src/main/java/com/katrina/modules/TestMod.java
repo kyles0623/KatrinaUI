@@ -1,8 +1,12 @@
-package com.katrina.ui;
+package com.katrina.modules;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
+
+import com.katrina.ui.EmergencyListener;
+import com.katrina.ui.KatrinaModule;
+import com.katrina.ui.KatrinaModuleListener;
 
 /**
  * Created by alatnet on 3/8/2015.

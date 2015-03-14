@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">Katrina</string>
     <string name="title_activity_main_ui">Katrina</string>
     <string name="title_activity_contacts_ui">Katrina Contact Selector</string>
     <string name="action_settings">Settings</string>
+    <string name="action_set_contacts">Set Contacts</string>
     <string name="button_apps_str">Apps</string>
     <string name="button_emergency_str">Emergency</string>
     <string name="button_settings_str">Settings</string>

@@ -20,12 +20,14 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.katrina.ui.com.katrina.util.Utilities;
+import com.katrina.modules.ModuleApp;
+import com.katrina.util.Utilities;
 
 import java.util.List;
 
@@ -101,22 +103,42 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
 
         //set contact's on long click listener.
         View contact1 = mainUI.findViewById(R.id.contact1);
-        contact1.setOnLongClickListener(this);
         View contact2 = mainUI.findViewById(R.id.contact2);
-        contact2.setOnLongClickListener(this);
         View contact3 = mainUI.findViewById(R.id.contact3);
-        contact3.setOnLongClickListener(this);
         View contact4 = mainUI.findViewById(R.id.contact4);
-        contact4.setOnLongClickListener(this);
         View contact5 = mainUI.findViewById(R.id.contact5);
+        contact1.setOnLongClickListener(this);
+        contact2.setOnLongClickListener(this);
+        contact3.setOnLongClickListener(this);
+        contact4.setOnLongClickListener(this);
         contact5.setOnLongClickListener(this);
 
-        /*TESTMOD t = new TESTMOD();
-
-        for (int i=0;i<20;i++){ moduleAdapter.addModule(t); }*/
+        Button emergency = (Button)mainUI.findViewById(R.id.action_emergency);
+        emergency.setOnLongClickListener(this);
 
         //add apps to app list
         new AppSyncTask(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
+        //Load Modules
+        String[] modules = getResources().getStringArray(R.array.Modules); //get module list
+        try {
+            for (String module : modules) { //for each module
+                Class cls = Class.forName(module); //get the class from the module list
+                KatrinaModule moduleInstance = (KatrinaModule) cls.newInstance(); //crete a new instance (i.e. new Class)
+                moduleInstance.registerKMListener(moduleAdapter); //register KMListener
+                moduleInstance.registerEmergencyListener(this); //register EmergencyListener
+                moduleAdapter.addModule(moduleInstance); //add module to home screen
+            }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            Log.i("ClassNotFoundException",e.toString());
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+            Log.i("InstantiationException",e.toString());
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+            Log.i("IllegalAccessException",e.toString());
+        }
     }
 
     @Override
@@ -178,14 +200,24 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
                 cPhone = (TextView) contact.findViewById(R.id.cPhone);
                 cImg = (ImageView) contact.findViewById(R.id.cImg);
 
-                cName.setText(contactInfo[i].name);
-                if (!contactInfo[i].type.isEmpty()) cPhone.setText(contactInfo[i].phone + " (" + contactInfo[i].type + ")");
-                else cPhone.setText(contactInfo[i].phone);
+                if (contactInfo[i].name.isEmpty()){
+                    contactInfo[i].name = "";
+                    contactInfo[i].phone = "";
+                    contactInfo[i].type = "";
+                    contactInfo[i].photo = null;
 
-                if (contactInfo[i].photo != null){
-                    cImg.setImageURI(contactInfo[i].photo);
+                    cName.setText("Set Contact");
+                    cPhone.setText("(777)-777-7777");
+                    cImg.setImageResource(R.mipmap.unknown);
+                }else {
+                    cName.setText(contactInfo[i].name);
+                    if (!contactInfo[i].type.isEmpty())
+                        cPhone.setText(contactInfo[i].phone + " (" + contactInfo[i].type + ")");
+                    else cPhone.setText(contactInfo[i].phone);
+
+                    if (contactInfo[i].photo != null) cImg.setImageURI(contactInfo[i].photo);
+                    else cImg.setImageResource(R.mipmap.unknown);
                 }
-                else cImg.setImageResource(R.mipmap.unknown);
             }
         }
     }
@@ -259,11 +291,14 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (item.getItemId()){
+            case R.id.action_settings:
+                return true;
+            case R.id.action_set_contacts:
+                Intent i = new Intent(MainUI.this,ContactsUI.class);
+                i.putExtra("maxSelection",5);
+                startActivityForResult(i, R.id.ContactSelection);
+                break;
         }
 
         return super.onOptionsItemSelected(item);
@@ -313,7 +348,7 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         }
     }
 
-    //using this to have the ability to set a single contact.
+    //using this to call a contact.
     @Override
     public boolean onLongClick(View v) {
         switch (v.getId()){
@@ -331,6 +366,9 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
                 break;
             case R.id.contact5:
                 contactInfo[4].call(this);
+                break;
+            case R.id.action_emergency:
+                this.onEmergency();
                 break;
         }
 
@@ -509,8 +547,14 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
 
     @Override
     public void onEmergency() {
+        if (Utilities.DEBUG) return;
         //TODO Text all numbers with location. Call emergency services.
-        Log.i("onEmergency","Emergency function called!");
+
+        for (ContactInfo c : contactInfo) c.text("EMERGENCY!");
+
+        Intent callIntent = new Intent(Intent.ACTION_CALL);
+        callIntent.setData(Uri.parse("tel:911"));
+        startActivity(callIntent);
     }
 
     //apparently it works really well.

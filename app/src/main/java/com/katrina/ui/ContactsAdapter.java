@@ -21,7 +21,7 @@ import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.katrina.ui.com.katrina.util.Utilities;
+import com.katrina.util.Utilities;
 
 import java.util.ArrayList;
 

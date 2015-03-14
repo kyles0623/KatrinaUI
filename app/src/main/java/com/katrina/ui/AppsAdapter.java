@@ -12,6 +12,8 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.katrina.modules.ModuleApp;
+
 import java.util.ArrayList;
 
 /**

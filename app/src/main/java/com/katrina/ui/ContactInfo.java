@@ -5,7 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.telephony.SmsManager;
 
-import com.katrina.ui.com.katrina.util.Utilities;
+import com.katrina.util.Utilities;
 
 /**
  * Created by alatnet on 3/7/2015.
