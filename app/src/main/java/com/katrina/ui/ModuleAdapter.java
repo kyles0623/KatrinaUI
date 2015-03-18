@@ -77,31 +77,6 @@ public class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClic
     public View getView(int position, View convertView, ViewGroup parent) {
         moduleList.get(position).mod.setID(position);
         return moduleList.get(position).view;
-        /*View modView = null;
-        if (position < moduleViews.size() && position >= 0 && moduleViews.size() != 0) modView = moduleViews.get(position);
-
-        //create the view
-        if (modView != null) {
-            return modView;
-        }else if (convertView == null && modView == null) {
-            convertView = inflater.inflate(R.layout.app_list_button_layout, null);
-            moduleViews.put(position,convertView);
-
-            KatrinaModule mod = moduleList.get(position);
-
-            TextView textView = (TextView) convertView.findViewById(R.id.aText);
-            textView.setText(mod.getName());
-
-            Drawable iImg = mod.getIconImage();
-            if (iImg != null) {
-                ImageView imageView = (ImageView) convertView.findViewById(R.id.aIcon);
-                imageView.setImageDrawable(iImg);
-            }
-        }else if (convertView == null && modView != null) { //there's already a view created, use it.
-            convertView = modView;
-        }
-
-        return convertView;*/
     }
 
     //Android stuff.
@@ -123,6 +98,16 @@ public class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClic
 
             aBuild.create().show();
         }
+
+        /*
+        if (!mod.onModuleClick(mContext)){
+            aBuild.setMessage(mod.getError())
+                    .setTitle(mod.getName() + " Error!");
+            //.setPositiveButton("OK",null);
+
+            aBuild.create().show();
+        }
+        */
     }
 
     //Android stuff.
@@ -150,6 +135,16 @@ public class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClic
                     .setNegativeButton("No",null);
             aBuild.create().show();
             return true;
+        }else{
+            /*
+            if (!mod.onModuleLongClick(mContext)){
+                aBuild.setMessage(mod.getError())
+                        .setTitle(mod.getName() + " Error!");
+                //.setPositiveButton("OK",null);
+
+                aBuild.create().show();
+            }
+            */
         }
 
         return false;

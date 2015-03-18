@@ -15,7 +15,8 @@ public class ContactsUI extends Activity implements View.OnClickListener {
         setContentView(R.layout.activity_contacts_ui);
 
         ExpandableListView elView = (ExpandableListView) findViewById(R.id.contactsUI_ListView);
-        contactsAdapter = new ContactsAdapter(this, getIntent().getIntExtra("maxSelection", -1));
+        //contactsAdapter = new ContactsAdapter(this, getIntent().getIntExtra("maxSelection", -1));
+        contactsAdapter = new ContactsAdapter(this,getIntent().getBundleExtra("data"));
         elView.setAdapter(contactsAdapter);
         //elView.setOnChildClickListener(contactsAdapter);
     }

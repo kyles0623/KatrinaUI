@@ -15,6 +15,7 @@ public class ContactInfo{
     public String phone = "";
     public String type = "";
     public Uri photo = null;
+    public Long id;
 
     public void call(Context c){
         if (Utilities.DEBUG) return;

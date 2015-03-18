@@ -75,7 +75,10 @@ public class AppsAdapter extends BaseAdapter implements AdapterView.OnItemClickL
     public View getView(int position, View convertView, ViewGroup parent) { return appList.get(position).view; }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) { appList.get(position).app.doAction(mContext); }
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        appList.get(position).app.doAction(mContext);
+        //appList.get(position).app.onModuleClick(mContext);
+    }
 
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {

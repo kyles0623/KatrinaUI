@@ -3,19 +3,17 @@ package com.katrina.ui;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.ContentUris;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,30 +31,38 @@ import com.katrina.util.Utilities;
 
 import java.util.List;
 
+//TODO Home and Back button events. Home and Back must bring screen back to home screen when in app list.
+
 public class MainUI extends Activity implements View.OnClickListener, View.OnLongClickListener, EmergencyListener {
     private GridView moduleGridView;  //Grid list of modules and APK apps on home screen.
     private ModuleAdapter moduleAdapter; //adapter to manage the modules displayed on the home screen.
-    private ListView appsListView;
-    private AppsAdapter appsAdapter;
-    private AlertDialog.Builder aBuild;
-    private ContactInfo[] contactInfo = new ContactInfo[5];
-    private boolean firstInit = true;
+    private ListView appsListView; //list view of applications installed on phone
+    private AppsAdapter appsAdapter; //adapter to manage the list of applications
+    private AlertDialog.Builder aBuild; //DIALOG BOXES EVARYWHERE!!!!
+    private ContactInfo[] contactInfo = new ContactInfo[5]; //the 5 top contacts.
+    private boolean firstInit = true; //check to see if this is the first time Katrina has started.
 
-    private View mainUI = null;
-    private View appUI = null;
+    private View mainUI = null; //home screen
+    private View appUI = null; //app list
 
     public MainUI(){
         super();
-        for(int i=0;i<contactInfo.length;i++) contactInfo[i] = new ContactInfo();
+        for(int i=0;i<contactInfo.length;i++) contactInfo[i] = new ContactInfo(); //setup the contact info.  Errors out if we dont do this.
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        //save state system?
+        /*if (savedInstanceState != null){
+        }*/
+
         LayoutInflater layoutInflater = getLayoutInflater();
+
         mainUI = layoutInflater.inflate(R.layout.activity_main_ui,null);
         appUI = layoutInflater.inflate(R.layout.activity_main_ui_appslist,null);
+
         setContentView(mainUI);
 
         aBuild = new AlertDialog.Builder(this);
@@ -74,7 +80,9 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             Intent i = new Intent(MainUI.this,ContactsUI.class);
-                            i.putExtra("maxSelection",5);
+                            Bundle b = new Bundle();
+                            b.putInt("maxSelection",5);
+                            i.putExtra("data",b);
                             startActivityForResult(i, R.id.ContactSelection);
                         }
                     });
@@ -83,8 +91,8 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             SharedPreferences.Editor e = prefs.edit();
             e.putBoolean("firstInit",false);
             e.commit();
-        }else{
             firstInit = false;
+        }else{
             clearContacts();
             loadContacts(prefs);
         }
@@ -121,164 +129,61 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         //add apps to app list
         new AppSyncTask(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
-        //Load Modules
-        String[] modules = getResources().getStringArray(R.array.Modules); //get module list
-        try {
-            for (String module : modules) { //for each module
-                Class cls = Class.forName(module); //get the class from the module list
-                KatrinaModule moduleInstance = (KatrinaModule) cls.newInstance(); //crete a new instance (i.e. new Class)
-                moduleInstance.registerKMListener(moduleAdapter); //register KMListener
-                moduleInstance.registerEmergencyListener(this); //register EmergencyListener
-                moduleAdapter.addModule(moduleInstance); //add module to home screen
-            }
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            Log.i("ClassNotFoundException",e.toString());
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-            Log.i("InstantiationException",e.toString());
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-            Log.i("IllegalAccessException",e.toString());
-        }
+        loadModules();
     }
+
+    //save state system?
+    /*@Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }*/
+
+    /*@Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if ((intent.getFlags() & Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT) != Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT) setContentView(mainUI);
+    }*/
 
     @Override
     protected void onStop(){
         super.onStop();
 
         if (!firstInit) {
-            //Open preference file to save data.
-            SharedPreferences prefs = this.getSharedPreferences(getString(R.string.preference_file), Context.MODE_PRIVATE);
-
-            SharedPreferences.Editor e = prefs.edit();
-
-            for (int i = 0; i < contactInfo.length; i++) {
-                e.putString("Contact" + i + "-name", contactInfo[i].name);
-                e.putString("Contact" + i + "-number", contactInfo[i].phone);
-                e.putString("Contact" + i + "-type", contactInfo[i].type);
-                if (contactInfo[i].photo != null) e.putString("Contact" + i + "-photo", contactInfo[i].photo.toString());
-                else e.putString("Contact" + i + "-photo", "null");
-            }
-
-            e.commit();
+            saveContacts(this.getSharedPreferences(getString(R.string.preference_file), Context.MODE_PRIVATE));
         }else{
             firstInit = false;
         }
+
+        //TODO save app list on home screen.
+        //TODO save module state (i.e. isActive setActive)
     }
 
-    private void loadContacts(SharedPreferences sP){
-        for (int i=0;i<contactInfo.length;i++){
-            View contact=null;
-            TextView cName;
-            TextView cPhone;
-            ImageView cImg;
-
-            contactInfo[i].name = sP.getString("Contact"+i+"-name","Set Contact");
-            contactInfo[i].phone = sP.getString("Contact"+i+"-number","(777)-777-7777");
-            contactInfo[i].type = sP.getString("Contact"+i+"-type","");
-            contactInfo[i].photo = Utilities.checkUriExists(this,Uri.parse(sP.getString("Contact"+i+"-photo","null")));
-
-            switch(i+1){
-                case 1:
-                    contact=mainUI.findViewById(R.id.contact1);
-                    break;
-                case 2:
-                    contact=mainUI.findViewById(R.id.contact2);
-                    break;
-                case 3:
-                    contact=mainUI.findViewById(R.id.contact3);
-                    break;
-                case 4:
-                    contact=mainUI.findViewById(R.id.contact4);
-                    break;
-                case 5:
-                    contact=mainUI.findViewById(R.id.contact5);
-                    break;
-            }
-
-            if (contact != null) {
-                cName = (TextView) contact.findViewById(R.id.cName);
-                cPhone = (TextView) contact.findViewById(R.id.cPhone);
-                cImg = (ImageView) contact.findViewById(R.id.cImg);
-
-                if (contactInfo[i].name.isEmpty()){
-                    contactInfo[i].name = "";
-                    contactInfo[i].phone = "";
-                    contactInfo[i].type = "";
-                    contactInfo[i].photo = null;
-
-                    cName.setText("Set Contact");
-                    cPhone.setText("(777)-777-7777");
-                    cImg.setImageResource(R.mipmap.unknown);
-                }else {
-                    cName.setText(contactInfo[i].name);
-                    if (!contactInfo[i].type.isEmpty())
-                        cPhone.setText(contactInfo[i].phone + " (" + contactInfo[i].type + ")");
-                    else cPhone.setText(contactInfo[i].phone);
-
-                    if (contactInfo[i].photo != null) cImg.setImageURI(contactInfo[i].photo);
-                    else cImg.setImageResource(R.mipmap.unknown);
-                }
-            }
+    //i have no idea what im doing...
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event){
+        switch (keyCode){
+            case KeyEvent.KEYCODE_BACK:
+            case KeyEvent.KEYCODE_HOME:
+                setContentView(mainUI);
+                return true;
         }
+        return false;
     }
 
-    private void clearContact(int slot){
-        contactInfo[slot].phone = "";
-        contactInfo[slot].name = "";
-        contactInfo[slot].type = "";
-        contactInfo[slot].photo = null;
-
-        View contact=null;
-        TextView cName;
-        TextView cPhone;
-        ImageView cImg;
-
-        switch(slot+1){
-            case 1:
-                contact=mainUI.findViewById(R.id.contact1);
-                break;
-            case 2:
-                contact=mainUI.findViewById(R.id.contact2);
-                break;
-            case 3:
-                contact=mainUI.findViewById(R.id.contact3);
-                break;
-            case 4:
-                contact=mainUI.findViewById(R.id.contact4);
-                break;
-            case 5:
-                contact=mainUI.findViewById(R.id.contact5);
-                break;
-        }
-
-        if (contact != null) {
-            cName = (TextView) contact.findViewById(R.id.cName);
-            cPhone = (TextView) contact.findViewById(R.id.cPhone);
-            cImg = (ImageView) contact.findViewById(R.id.cImg);
-
-            cName.setText("Set Contact");
-            cPhone.setText("(777)-777-7777");
-            cImg.setImageResource(R.mipmap.unknown);
-        }
+    //works ish...
+    @Override
+    public void onBackPressed(){
+        setContentView(mainUI);
     }
 
-    private void clearContacts(){ for (int i=0;i<contactInfo.length;i++) clearContact(i); }
-
-    //add a module to the home screen.
-    /*public void addModule(KatrinaModule mod){
-        moduleAdapter.addModule(mod);
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                moduleAdapter.notifyDataSetChanged();
-            }
-        });
-    }*/
+    //works only on double tap...
+    @Override
+    protected void onUserLeaveHint(){
+        setContentView(mainUI);
+    }
 
     //Android stuff.
-    //What the heck does this even do?
+    //Options context menu
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -287,7 +192,7 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
     }
 
     //Android stuff.
-    //What the heck does this even do?
+    //Options context menu stuff
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -297,9 +202,22 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             case R.id.action_settings:
                 return true;
             case R.id.action_set_contacts:
-                Intent i = new Intent(MainUI.this,ContactsUI.class);
-                i.putExtra("maxSelection",5);
-                startActivityForResult(i, R.id.ContactSelection);
+                Intent intent = new Intent(MainUI.this,ContactsUI.class);
+
+                Bundle dataBundle = new Bundle();
+                Bundle contactsBundle = new Bundle();
+                dataBundle.putInt("maxSelection", 5);
+
+                for (int i=0;i<contactInfo.length;i++){
+                    Bundle b = new Bundle();
+                    b.putLong("id",contactInfo[i].id);
+                    b.putString("phone",contactInfo[i].phone);
+                    contactsBundle.putBundle(""+i,b);
+                }
+                dataBundle.putBundle("contactSelected",contactsBundle);
+
+                intent.putExtra("data",dataBundle);
+                startActivityForResult(intent, R.id.ContactSelection);
                 break;
         }
 
@@ -317,36 +235,6 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             case R.id.backToMain:
                 setContentView(mainUI);
                 break;
-            /*//call contact
-            case R.id.contact1:
-                Log.i("onClick", "C1");
-                //Intent i = new Intent(this,ContactsUI.class);
-                //startActivityForResult(i,2000);
-                break;
-            case R.id.contact2:
-                Log.i("onClick", "C2");
-                break;
-            case R.id.contact3:
-                Log.i("onClick", "C3");
-                break;
-            case R.id.contact4:
-                Log.i("onClick", "C4");
-                break;
-            case R.id.contact5:
-                Log.i("onClick", "C5");
-                break;
-            //open apps activity
-            case R.id.apps:
-                Log.i("onClick", "Apps");
-                break;
-            case R.id.emergency:
-                Log.i("onClick", "Emergency");
-                this.onEmergency();
-                break;
-            //open settings activity
-            case R.id.settings:
-                Log.i("onClick", "Settings");
-                break;*/
         }
     }
 
@@ -373,45 +261,6 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
                 this.onEmergency();
                 break;
         }
-
-        /*
-        //setup intent.
-        Intent cIntent = null;
-        switch (v.getId()){
-            case R.id.contact1:
-            case R.id.contact2:
-            case R.id.contact3:
-            case R.id.contact4:
-            case R.id.contact5:
-                cIntent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
-                break;
-        }
-
-        //execute intent
-        if (cIntent != null) {
-            switch (v.getId()) {
-                case R.id.contact1:
-                    Log.i("onLongClick", "C1");
-                    startActivityForResult(cIntent, R.id.contact1);
-                    break;
-                case R.id.contact2:
-                    Log.i("onLongClick", "C2");
-                    startActivityForResult(cIntent, R.id.contact2);
-                    break;
-                case R.id.contact3:
-                    Log.i("onLongClick", "C3");
-                    startActivityForResult(cIntent, R.id.contact3);
-                    break;
-                case R.id.contact4:
-                    Log.i("onLongClick", "C4");
-                    startActivityForResult(cIntent, R.id.contact4);
-                    break;
-                case R.id.contact5:
-                    Log.i("onLongClick", "C5");
-                    startActivityForResult(cIntent, R.id.contact5);
-                    break;
-            }
-        }*/
         return false;
     }
 
@@ -419,8 +268,8 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         super.onActivityResult(requestCode,resultCode,data);
-        /*Log.i("onActivityResult","requestCode: " + requestCode);
-        Log.i("onActivityResult","resultCode: " + resultCode);*/
+        Log.i("onActivityResult","requestCode: " + requestCode);
+        Log.i("onActivityResult","resultCode: " + resultCode);
         if (resultCode == Activity.RESULT_OK){
             //Bundle b = data.getBundleExtra("contacts");
             /*Log.i("onActivityResult", data.getStringExtra("result"));*/
@@ -487,62 +336,6 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
                         }
                     }
                     break;
-                //change contact
-                //may just not use this.
-                case R.id.contact1:
-                case R.id.contact2:
-                case R.id.contact3:
-                case R.id.contact4:
-                case R.id.contact5:
-                    View contact=mainUI.findViewById(requestCode);
-                    TextView cName;
-                    TextView cPhone;
-                    ImageView cImg;
-
-                    //set contact data.
-                    if (contact != null) {
-                        cName = (TextView) contact.findViewById(R.id.cName);
-                        cPhone = (TextView) contact.findViewById(R.id.cPhone);
-                        cImg = (ImageView) contact.findViewById(R.id.cImg);
-
-                        String phoneNumber;
-                        String phoneName;
-                        Uri phoneImage;
-
-                        Uri contactData = data.getData();
-                        Cursor c =  getContentResolver().query(contactData, null, null, null, null);
-                        if (c.moveToFirst()) {
-                            String id =c.getString(c.getColumnIndexOrThrow(ContactsContract.Contacts._ID));
-
-                            phoneName = c.getString(c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-                            Uri person = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, Long.parseLong(id));
-                            phoneImage =  Uri.withAppendedPath(person, ContactsContract.Contacts.Photo.CONTENT_DIRECTORY);
-
-                            String hasPhone =c.getString(c.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER));
-                            if (hasPhone.equalsIgnoreCase("1")) {
-                                Cursor phones = getContentResolver().query(
-                                        ContactsContract.CommonDataKinds.Phone.CONTENT_URI,null,
-                                        ContactsContract.CommonDataKinds.Phone.CONTACT_ID +" = "+ id,
-                                        null, null);
-                                phones.moveToFirst();
-                                phoneNumber = phones.getString(phones.getColumnIndex("data1"));
-                            }else{
-                                aBuild.setTitle("Contact does not have a number.")
-                                        .setMessage("Im sorry but the contact you have selected does not have a number associated with it.")
-                                        .setPositiveButton("OK",null);
-                                aBuild.create().show();
-                                return; //error out, contact does not have a phone number.
-                            }
-
-                            //set the data.
-                            cName.setText(phoneName);
-                            cPhone.setText(phoneNumber);
-                            if (phoneImage != null) cImg.setImageURI(phoneImage);
-                            else cImg.setImageResource(R.mipmap.unknown);
-                        }
-                        c.close();
-                    }
-                    break;
             }
         }
     }
@@ -558,6 +351,148 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         callIntent.setData(Uri.parse("tel:911"));
         startActivity(callIntent);
     }
+
+    //Custom Code
+    private void loadModules(){
+        //Load Modules
+        String[] modules = getResources().getStringArray(R.array.Modules); //get module list
+        try {
+            for (String module : modules) { //for each module
+                Class cls = Class.forName(module); //get the class from the module list
+                KatrinaModule moduleInstance = (KatrinaModule) cls.newInstance(); //create a new instance (i.e. new Class)
+                moduleInstance.registerKMListener(moduleAdapter); //register KMListener
+                moduleInstance.registerEmergencyListener(this); //register EmergencyListener
+                moduleAdapter.addModule(moduleInstance); //add module to home screen
+            }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            Log.i("ClassNotFoundException",e.toString());
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+            Log.i("InstantiationException",e.toString());
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+            Log.i("IllegalAccessException",e.toString());
+        }
+    }
+
+    private void loadContacts(SharedPreferences sP){
+        for (int i=0;i<contactInfo.length;i++){
+            View contact=null;
+            TextView cName;
+            TextView cPhone;
+            ImageView cImg;
+
+            contactInfo[i].name = sP.getString("Contact"+i+"-name","Set Contact");
+            contactInfo[i].phone = sP.getString("Contact"+i+"-number","(777)-777-7777");
+            contactInfo[i].type = sP.getString("Contact"+i+"-type","");
+            contactInfo[i].photo = Utilities.checkUriExists(this, Uri.parse(sP.getString("Contact" + i + "-photo", "null")));
+            contactInfo[i].id = sP.getLong("Contact" + i + "-id", (long) -1);
+
+            switch(i+1){
+                case 1:
+                    contact=mainUI.findViewById(R.id.contact1);
+                    break;
+                case 2:
+                    contact=mainUI.findViewById(R.id.contact2);
+                    break;
+                case 3:
+                    contact=mainUI.findViewById(R.id.contact3);
+                    break;
+                case 4:
+                    contact=mainUI.findViewById(R.id.contact4);
+                    break;
+                case 5:
+                    contact=mainUI.findViewById(R.id.contact5);
+                    break;
+            }
+
+            if (contact != null) {
+                cName = (TextView) contact.findViewById(R.id.cName);
+                cPhone = (TextView) contact.findViewById(R.id.cPhone);
+                cImg = (ImageView) contact.findViewById(R.id.cImg);
+
+                if (contactInfo[i].name.isEmpty()){
+                    contactInfo[i].name = "";
+                    contactInfo[i].phone = "";
+                    contactInfo[i].type = "";
+                    contactInfo[i].photo = null;
+                    contactInfo[i].id = (long)-1;
+
+                    cName.setText("Set Contact");
+                    cPhone.setText("(777)-777-7777");
+                    cImg.setImageResource(R.mipmap.unknown);
+                }else {
+                    cName.setText(contactInfo[i].name);
+                    if (!contactInfo[i].type.isEmpty())
+                        cPhone.setText(contactInfo[i].phone + " (" + contactInfo[i].type + ")");
+                    else cPhone.setText(contactInfo[i].phone);
+
+                    if (contactInfo[i].photo != null) cImg.setImageURI(contactInfo[i].photo);
+                    else cImg.setImageResource(R.mipmap.unknown);
+                }
+            }
+        }
+    }
+
+    private void saveContacts(SharedPreferences prefs){
+        SharedPreferences.Editor e = prefs.edit();
+
+        //save contacts
+        for (int i = 0; i < contactInfo.length; i++) {
+            e.putString("Contact" + i + "-name", contactInfo[i].name);
+            e.putString("Contact" + i + "-number", contactInfo[i].phone);
+            e.putString("Contact" + i + "-type", contactInfo[i].type);
+            e.putLong("Contact" + i + "-id", contactInfo[i].id);
+            if (contactInfo[i].photo != null) e.putString("Contact" + i + "-photo", contactInfo[i].photo.toString());
+            else e.putString("Contact" + i + "-photo", "null");
+        }
+
+        e.commit();
+    }
+
+    private void clearContact(int slot){
+        contactInfo[slot].phone = "";
+        contactInfo[slot].name = "";
+        contactInfo[slot].type = "";
+        contactInfo[slot].photo = null;
+        contactInfo[slot].id = (long)-1;
+
+        View contact=null;
+        TextView cName;
+        TextView cPhone;
+        ImageView cImg;
+
+        switch(slot+1){
+            case 1:
+                contact=mainUI.findViewById(R.id.contact1);
+                break;
+            case 2:
+                contact=mainUI.findViewById(R.id.contact2);
+                break;
+            case 3:
+                contact=mainUI.findViewById(R.id.contact3);
+                break;
+            case 4:
+                contact=mainUI.findViewById(R.id.contact4);
+                break;
+            case 5:
+                contact=mainUI.findViewById(R.id.contact5);
+                break;
+        }
+
+        if (contact != null) {
+            cName = (TextView) contact.findViewById(R.id.cName);
+            cPhone = (TextView) contact.findViewById(R.id.cPhone);
+            cImg = (ImageView) contact.findViewById(R.id.cImg);
+
+            cName.setText("Set Contact");
+            cPhone.setText("(777)-777-7777");
+            cImg.setImageResource(R.mipmap.unknown);
+        }
+    }
+
+    private void clearContacts(){ for (int i=0;i<contactInfo.length;i++) clearContact(i); }
 
     //apparently it works really well.
     private class AppSyncTask extends AsyncTask<Void,Integer,Void> {
@@ -627,42 +562,3 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         }
     }
 }
-
-
-//Using this for single pick of phone contact;
-/*
- @Override
- public void onActivityResult(int reqCode, int resultCode, Intent data) {
- super.onActivityResult(reqCode, resultCode, data);
-
- switch (reqCode) {
- case (PICK_CONTACT) :
-   if (resultCode == Activity.RESULT_OK) {
-
-     Uri contactData = data.getData();
-     Cursor c =  managedQuery(contactData, null, null, null, null);
-     if (c.moveToFirst()) {
-
-
-         String id =c.getString(c.getColumnIndexOrThrow(ContactsContract.Contacts._ID));
-
-         String hasPhone =c.getString(c.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER));
-
-           if (hasPhone.equalsIgnoreCase("1")) {
-          Cursor phones = getContentResolver().query(
-                       ContactsContract.CommonDataKinds.Phone.CONTENT_URI,null,
-                       ContactsContract.CommonDataKinds.Phone.CONTACT_ID +" = "+ id,
-                       null, null);
-             phones.moveToFirst();
-              cNumber = phones.getString(phones.getColumnIndex("data1"));
-             System.out.println("number is:"+cNumber);
-           }
-         String name = c.getString(c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-
-
-     }
-   }
-   break;
- }
- }
-*/

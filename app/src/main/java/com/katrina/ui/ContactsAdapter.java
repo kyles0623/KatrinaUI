@@ -43,6 +43,7 @@ public class ContactsAdapter extends BaseExpandableListAdapter implements Expand
         View groupView;
         int pos;
         Uri photo;
+        long id;
     }
 
     private final Context mContext;
@@ -63,6 +64,14 @@ public class ContactsAdapter extends BaseExpandableListAdapter implements Expand
     public ContactsAdapter(Context context, int maxSelection) {
         this(context);
         this.maxSelection = maxSelection;
+    }
+
+    public ContactsAdapter(Context context, Bundle data) {
+        this(context);
+        this.maxSelection = data.getInt("maxSelection", -1);
+        //TODO get list of selected contacts.
+
+        Bundle contactSelection = data.getBundle("contactsSelected");
     }
 
     @Override
@@ -183,6 +192,7 @@ public class ContactsAdapter extends BaseExpandableListAdapter implements Expand
                     child.putString("Name",cGroup.name);
                     child.putString("Number",cChild.number);
                     child.putString("Type",getPhoneType(cChild.type));
+                    child.putLong("id",cGroup.id);
                     if (cGroup.photo != null) child.putString("Photo",cGroup.photo.toString());
                     else child.putString("Photo", "null");
                     ret.putBundle(""+currContact,child);
@@ -217,11 +227,12 @@ public class ContactsAdapter extends BaseExpandableListAdapter implements Expand
                 ContactGroup cGroup = new ContactGroup();
                 cGroup.pos = contactList.size();
                 String id = cur.getString(cur.getColumnIndex(ContactsContract.Contacts._ID));
+                cGroup.id = Long.parseLong(id);
                 cGroup.name = cur.getString(cur.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
 
                 //Uri photoUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, Long.parseLong(id));
 
-                cGroup.photo = Utilities.checkUriExists(cContext,getPhotoUri(cr,Long.parseLong(id)));
+                cGroup.photo = Utilities.checkUriExists(cContext,getPhotoUri(cr,cGroup.id));
 
                 cGroup.groupView = createGroupView(cGroup.photo, cGroup.name);
 
