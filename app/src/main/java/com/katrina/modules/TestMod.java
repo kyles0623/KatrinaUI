@@ -9,6 +9,7 @@ import android.util.Log;
  */
 public class TestMod implements KatrinaModule {
     EmergencyListener emergencyListener;
+    boolean active = false;
 
     @Override
     public Drawable getIconImage() {
@@ -21,9 +22,14 @@ public class TestMod implements KatrinaModule {
     }
 
     @Override
-    public boolean doAction(Context c) {
+    public boolean onModuleClick(Context c) {
         Log.i("TESTMOD.doAction", "TEST");
         emergencyListener.onEmergency();
+        return false;
+    }
+
+    @Override
+    public boolean onModuleLongClick(Context c) {
         return false;
     }
 
@@ -43,4 +49,20 @@ public class TestMod implements KatrinaModule {
 
     @Override
     public void registerKMListener(KatrinaModuleListener kmListener) {}
+
+    @Override
+    public void setActive(boolean active) {
+        Log.i("TestMod.setActive",Boolean.toString(active));
+        this.active = active;
+    }
+
+    @Override
+    public boolean isActive() {
+        return !this.active;
+    }
+
+    @Override
+    public String getUniqueID() {
+        return "TESTMOD001";
+    }
 }

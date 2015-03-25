@@ -45,9 +45,17 @@ public class AppsAdapter extends BaseAdapter implements AdapterView.OnItemClickL
         inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
-    synchronized public void addModule(ModuleApp m){
+    synchronized public void addModule(ModuleApp m, boolean addtohomescreen){
         //appViews.add(createModView(m));
         appList.add(new ModuleView(m,createModView(m)));
+
+        if (addtohomescreen){
+            moduleAdapter.addModule(m);
+            ((Activity)mContext).runOnUiThread(new Runnable() {
+                @Override
+                public void run() { moduleAdapter.notifyDataSetChanged(); }
+            });
+        }
     }
 
     private View createModView(ModuleApp mod){
@@ -76,8 +84,8 @@ public class AppsAdapter extends BaseAdapter implements AdapterView.OnItemClickL
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        appList.get(position).app.doAction(mContext);
-        //appList.get(position).app.onModuleClick(mContext);
+        //appList.get(position).app.doAction(mContext);
+        appList.get(position).app.onModuleClick(mContext);
     }
 
     @Override
@@ -97,6 +105,6 @@ public class AppsAdapter extends BaseAdapter implements AdapterView.OnItemClickL
                     }
                 });
         aBuild.create().show();
-        return false;
+        return true;
     }
 }

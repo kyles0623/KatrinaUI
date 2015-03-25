@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.telephony.SmsManager;
+import android.widget.Toast;
 
 import com.katrina.util.Utilities;
 
@@ -18,7 +19,10 @@ public class ContactInfo{
     public Long id;
 
     public void call(Context c){
-        if (Utilities.DEBUG) return;
+        if (Utilities.DEBUG){
+            Toast.makeText(c, "DEBUG! call Executed.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         if(phone.isEmpty()) return;
         Intent callIntent = new Intent(Intent.ACTION_CALL);
         callIntent.setData(Uri.parse("tel:"+phone));

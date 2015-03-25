@@ -28,11 +28,15 @@ public class ModuleApp implements KatrinaModule {
         return this.label;
     }
 
-    //Start the APK application.
     @Override
-    public boolean doAction(Context c) {
+    public boolean onModuleClick(Context c) {
         Intent i = c.getPackageManager().getLaunchIntentForPackage(this.name);
         c.startActivity(i);
+        return true;
+    }
+
+    @Override
+    public boolean onModuleLongClick(Context c) {
         return true;
     }
 
@@ -51,4 +55,18 @@ public class ModuleApp implements KatrinaModule {
 
     @Override
     public void registerKMListener(KatrinaModuleListener kmListener) {}
+
+    @Override
+    public void setActive(boolean active) {
+    }
+
+    @Override
+    public boolean isActive() {
+        return true;
+    }
+
+    @Override
+    public String getUniqueID() {
+        return this.name;
+    }
 }

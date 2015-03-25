@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import com.katrina.modules.KatrinaModule;
 import com.katrina.modules.KatrinaModuleListener;
+import com.katrina.modules.ModuleApp;
 
 import java.util.ArrayList;
 
@@ -35,12 +36,14 @@ public class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClic
 
     private final Context mContext;
     private final ArrayList<ModuleView> moduleList;
+    private final ArrayList<ModuleView> appList;
     //private final ArrayList<View> moduleViews;
     private final AlertDialog.Builder aBuild;
     private final LayoutInflater inflater;
 
     public ModuleAdapter(Context c){
         moduleList = new ArrayList<>();
+        appList = new ArrayList<>();
         //moduleViews = new ArrayList<>();
         mContext = c;
         aBuild = new AlertDialog.Builder(mContext);
@@ -53,11 +56,19 @@ public class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClic
         m.setID(position);
         m.registerKMListener(this);
         //moduleViews.add(createModView(m));
-        moduleList.add(new ModuleView(m,createModView(m)));
+        switch (m.getModuleType()){
+            case MODULE:
+                moduleList.add(new ModuleView(m,createModView(m)));
+                break;
+            case APP:
+            case MISC:
+                appList.add(new ModuleView(m,createModView(m)));
+                break;
+        }
     }
 
     //get the number of added modules.
-    public int getCount() { return moduleList.size(); }
+    public int getCount() { return moduleList.size()+appList.size(); }
 
     private View createModView(KatrinaModule mod){
         View convertView = inflater.inflate(R.layout.app_list_button_layout, null);
@@ -75,8 +86,12 @@ public class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClic
 
     //Android stuff.
     public View getView(int position, View convertView, ViewGroup parent) {
-        moduleList.get(position).mod.setID(position);
-        return moduleList.get(position).view;
+        if (position >= moduleList.size()) {
+            return appList.get(position-moduleList.size()).view;
+        } else {
+            moduleList.get(position).mod.setID(position);
+            return moduleList.get(position).view;
+        }
     }
 
     //Android stuff.
@@ -84,37 +99,41 @@ public class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClic
 
     //Android stuff. Get a module from position.
     public Object getItem(int position) {
-        return moduleList.get(position);
+        if (position >= moduleList.size()) {
+            return appList.get(position-moduleList.size()).mod;
+        } else {
+            moduleList.get(position).mod.setID(position);
+            return moduleList.get(position).mod;
+        }
     }
 
     //Android stuff.
     //Used to execute a module's custom code.
     public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-        KatrinaModule mod = moduleList.get(position).mod;
-        if (!mod.doAction(mContext)) {
-            aBuild.setMessage(mod.getError())
-                    .setTitle(mod.getName() + " Error!");
+        KatrinaModule mod = (KatrinaModule)getItem(position); //moduleList.get(position).mod;
+        //if (!mod.doAction(mContext)) {
+        //    aBuild.setMessage(mod.getError())
+        //            .setTitle(mod.getName() + " Error!");
             //.setPositiveButton("OK",null);
 
-            aBuild.create().show();
-        }
+        //    aBuild.create().show();
+        //}
 
-        /*
         if (!mod.onModuleClick(mContext)){
             aBuild.setMessage(mod.getError())
-                    .setTitle(mod.getName() + " Error!");
-            //.setPositiveButton("OK",null);
+                    .setTitle(mod.getName() + " Error!")
+                    .setPositiveButton("", null)
+                    .setNegativeButton("", null);
 
             aBuild.create().show();
         }
-        */
     }
 
     //Android stuff.
     //Used to remove APK apps from the module list.
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
-        KatrinaModule mod = moduleList.get(position).mod;
+        final KatrinaModule mod = (KatrinaModule)getItem(position); //moduleList.get(position).mod;
 
         if (mod.getModuleType() == KatrinaModule.MOD_TYPE.APP) {
             aBuild.setTitle("Remove " + mod.getName() + " from Home Screen.")
@@ -122,7 +141,8 @@ public class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClic
                     .setPositiveButton("Yes",new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            moduleList.remove(position);
+                            //appList.remove(position);
+                            appList.remove(position-moduleList.size());
                             //moduleViews.remove(position);
                             ((Activity)mContext).runOnUiThread(new Runnable() {
                                 @Override
@@ -136,18 +156,16 @@ public class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClic
             aBuild.create().show();
             return true;
         }else{
-            /*
             if (!mod.onModuleLongClick(mContext)){
                 aBuild.setMessage(mod.getError())
-                        .setTitle(mod.getName() + " Error!");
-                //.setPositiveButton("OK",null);
+                        .setTitle(mod.getName() + " Error!")
+                        .setPositiveButton("",null)
+                        .setNegativeButton("",null);
 
                 aBuild.create().show();
             }
-            */
+            return true;
         }
-
-        return false;
     }
 
     @Override
@@ -159,5 +177,17 @@ public class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClic
             @Override
             public void run() { notifyDataSetChanged(); }
         });
+    }
+
+    synchronized public ModuleApp[] getHomeScreenApps(){
+        ModuleApp[] ret = new ModuleApp[appList.size()];
+        for (int i=0;i<appList.size();i++) ret[i] = (ModuleApp)appList.get(i).mod;
+        return ret;
+    }
+
+    synchronized public KatrinaModule[] getModules(){
+        KatrinaModule[] ret = new KatrinaModule[moduleList.size()];
+        for (int i=0;i<moduleList.size();i++) ret[i] = moduleList.get(i).mod;
+        return ret;
     }
 }

@@ -8,7 +8,9 @@
     <string name="button_apps_str">Apps</string>
     <string name="button_emergency_str">Emergency</string>
     <string name="button_settings_str">Settings</string>
-    <string name="preference_file">KatrinaPrefs</string>
     <string name="activity_contacts_ui_contactsSave">Done</string>
     <string name="appListBack">Back</string>
+    <string name="preference_file">KatrinaPrefs</string>
+    <string name="homescreen_file">HomescreenPrefs</string>
+    <string name="module_file">ModuleStates</string>
 </resources>

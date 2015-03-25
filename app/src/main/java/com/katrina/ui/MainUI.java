@@ -23,12 +23,14 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.katrina.modules.EmergencyListener;
 import com.katrina.modules.KatrinaModule;
 import com.katrina.modules.ModuleApp;
 import com.katrina.util.Utilities;
 
+import java.util.ArrayList;
 import java.util.List;
 
 //TODO Home and Back button events. Home and Back must bring screen back to home screen when in app list.
@@ -126,10 +128,11 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         Button emergency = (Button)mainUI.findViewById(R.id.action_emergency);
         emergency.setOnLongClickListener(this);
 
-        //add apps to app list
-        new AppSyncTask(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        //load modules.
+        new ModSyncTask(this.getSharedPreferences(getString(R.string.module_file),Context.MODE_PRIVATE)).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
-        loadModules();
+        //add apps to app list
+        new AppSyncTask(this,loadHomescreen(this.getSharedPreferences(getString(R.string.homescreen_file),Context.MODE_PRIVATE))).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     //save state system?
@@ -153,9 +156,10 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         }else{
             firstInit = false;
         }
-
-        //TODO save app list on home screen.
         //TODO save module state (i.e. isActive setActive)
+
+        saveHomescreen(this.getSharedPreferences(getString(R.string.homescreen_file),Context.MODE_PRIVATE));
+        saveModuleStates(this.getSharedPreferences(getString(R.string.module_file), Context.MODE_PRIVATE));
     }
 
     //i have no idea what im doing...
@@ -342,7 +346,10 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
 
     @Override
     public void onEmergency() {
-        if (Utilities.DEBUG) return;
+        if (Utilities.DEBUG){
+            Toast.makeText(this,"DEBUG! onEmergency Executed.",Toast.LENGTH_SHORT).show();
+            return;
+        }
         //TODO Text all numbers with location. Call emergency services.
 
         for (ContactInfo c : contactInfo) c.text("EMERGENCY!");
@@ -353,41 +360,18 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
     }
 
     //Custom Code
-    private void loadModules(){
-        //Load Modules
-        String[] modules = getResources().getStringArray(R.array.Modules); //get module list
-        try {
-            for (String module : modules) { //for each module
-                Class cls = Class.forName(module); //get the class from the module list
-                KatrinaModule moduleInstance = (KatrinaModule) cls.newInstance(); //create a new instance (i.e. new Class)
-                moduleInstance.registerKMListener(moduleAdapter); //register KMListener
-                moduleInstance.registerEmergencyListener(this); //register EmergencyListener
-                moduleAdapter.addModule(moduleInstance); //add module to home screen
-            }
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            Log.i("ClassNotFoundException",e.toString());
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-            Log.i("InstantiationException",e.toString());
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-            Log.i("IllegalAccessException",e.toString());
-        }
-    }
-
-    private void loadContacts(SharedPreferences sP){
+    private void loadContacts(SharedPreferences prefs){
         for (int i=0;i<contactInfo.length;i++){
             View contact=null;
             TextView cName;
             TextView cPhone;
             ImageView cImg;
 
-            contactInfo[i].name = sP.getString("Contact"+i+"-name","Set Contact");
-            contactInfo[i].phone = sP.getString("Contact"+i+"-number","(777)-777-7777");
-            contactInfo[i].type = sP.getString("Contact"+i+"-type","");
-            contactInfo[i].photo = Utilities.checkUriExists(this, Uri.parse(sP.getString("Contact" + i + "-photo", "null")));
-            contactInfo[i].id = sP.getLong("Contact" + i + "-id", (long) -1);
+            contactInfo[i].name = prefs.getString("Contact"+i+"-name","Set Contact");
+            contactInfo[i].phone = prefs.getString("Contact"+i+"-number","(777)-777-7777");
+            contactInfo[i].type = prefs.getString("Contact"+i+"-type","");
+            contactInfo[i].photo = Utilities.checkUriExists(this, Uri.parse(prefs.getString("Contact" + i + "-photo", "null")));
+            contactInfo[i].id = prefs.getLong("Contact" + i + "-id", (long) -1);
 
             switch(i+1){
                 case 1:
@@ -494,12 +478,98 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
 
     private void clearContacts(){ for (int i=0;i<contactInfo.length;i++) clearContact(i); }
 
-    //apparently it works really well.
+    private ArrayList<String> loadHomescreen(SharedPreferences prefs){
+        Log.i("loadHomescreen","LOADING HOMESCREEN");
+        int numApps = prefs.getInt("NumApps",0);
+        if (numApps == 0) return null;
+
+        ArrayList<String> ret = new ArrayList<>();
+
+        for (int i=0;i<numApps;i++){
+            String s = prefs.getString("" + i, "");
+            Log.i("loadHomescreen","UID: " + s);
+            ret.add(s) ;
+        }
+
+        return ret;
+    }
+
+    private void saveHomescreen(SharedPreferences prefs){
+        Log.i("saveHomescreen","SAVING HOMESCREEN");
+        SharedPreferences.Editor e = prefs.edit();
+        e.clear();
+
+        ModuleApp[] apps = moduleAdapter.getHomeScreenApps();
+        e.putInt("NumApps", apps.length);
+
+        for (int i=0;i<apps.length;i++) {
+            String s = apps[i].getUniqueID();
+            Log.i("saveHomescreen","ID: "+ i + "  UID: " + s);
+            e.putString("" + i, s);
+        }
+
+        e.commit();
+    }
+
+    private void saveModuleStates(SharedPreferences prefs){
+        KatrinaModule[] mods = moduleAdapter.getModules();
+
+        SharedPreferences.Editor e = prefs.edit();
+        e.clear();
+
+        for (KatrinaModule mod : mods){
+            Log.i("saveModuleStates","UID: " + mod.getUniqueID() + "  State: " + mod.isActive());
+            e.putBoolean(mod.getUniqueID(),mod.isActive());
+        }
+
+        e.commit();
+    }
+
+    //AsyncTasks
+    private class ModSyncTask extends AsyncTask<Void,Void,Void> {
+        private final SharedPreferences prefs;
+
+        public ModSyncTask(SharedPreferences prefs){
+            this.prefs = prefs;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+
+            String[] modules = getResources().getStringArray(R.array.Modules); //get module list
+            try {
+                for (String module : modules) { //for each module
+                    Class cls = Class.forName(module); //get the class from the module list
+                    KatrinaModule moduleInstance = (KatrinaModule) cls.newInstance(); //create a new instance (i.e. new Class)
+                    //moduleInstance.registerKMListener(moduleAdapter); //register KMListener
+                    moduleInstance.setActive(prefs.getBoolean(moduleInstance.getUniqueID(),false));
+                    moduleInstance.registerEmergencyListener(MainUI.this); //register EmergencyListener
+                    moduleAdapter.addModule(moduleInstance); //add module to home screen
+                }
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+                Log.i("ClassNotFoundException",e.toString());
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+                Log.i("InstantiationException",e.toString());
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+                Log.i("IllegalAccessException",e.toString());
+            }
+
+            return null;
+        }
+    }
+
     private class AppSyncTask extends AsyncTask<Void,Integer,Void> {
         ProgressDialog progressDialog;
         Context mContext;
+        ArrayList<String> homescreen;
 
-        public AppSyncTask(Context c){ mContext = c; }
+        public AppSyncTask(Context c, ArrayList<String> homescreen){
+            mContext = c;
+            this.homescreen = homescreen;
+        }
 
         @Override
         protected void onPreExecute() {
@@ -527,7 +597,22 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
 
             for(ResolveInfo ri:availableActivities){
                 ModuleApp app = new ModuleApp(ri.loadLabel(manager).toString(),ri.activityInfo.packageName,ri.activityInfo.loadIcon(manager));
-                appsAdapter.addModule(app);
+
+                boolean addedToHS = false;
+
+                if (homescreen != null) if (!homescreen.isEmpty())
+                    for (int iHS=0;iHS<homescreen.size();iHS++) {
+                        String appS = homescreen.get(iHS);
+                        if (app.getUniqueID().equals(appS)) {
+                            appsAdapter.addModule(app, true);
+                            addedToHS = true;
+                            homescreen.remove(iHS);
+                            Log.i("Homescreen Load", "Adding " + appS + "to HS.");
+                            break;
+                        }
+                    }
+
+                if (!addedToHS) appsAdapter.addModule(app,false);
 
                 currPos++;
                 publishProgress(currPos,maxSize);
@@ -548,9 +633,7 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            if (progressDialog.isShowing()) {
-                progressDialog.dismiss();
-            }
+            if (progressDialog.isShowing()) progressDialog.dismiss();
             appsAdapter.notifyDataSetChanged();
         }
 
