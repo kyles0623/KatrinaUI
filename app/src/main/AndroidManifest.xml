@@ -11,6 +11,13 @@
     <uses-permission android:name="android.permission.WRITE_SMS" /> <!-- Write SMS's -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /> <!-- Get location of phone -->
 
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    <uses-feature android:name="android.hardware.camera.autofocus"  android:required="false" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -42,6 +49,23 @@
             android:launchMode="singleTop" >
             <intent-filter>
                 <category android:name="android.intent.category.APP_CONTACTS" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!-- Torch -->
+        <activity android:name="com.katrina.modules.torch.Torch" android:label="Katrina Torch"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name="com.katrina.modules.torch.QuickTorch" android:label="Katrina Quick Torch"
+            android:finishOnTaskLaunch="true">
+            <!--  Thanks to James Crisp for the following intent-filter -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH_LONG_PRESS" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>

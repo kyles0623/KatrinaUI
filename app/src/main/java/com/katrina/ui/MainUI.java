@@ -44,12 +44,15 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
     private ContactInfo[] contactInfo = new ContactInfo[5]; //the 5 top contacts.
     private boolean firstInit = true; //check to see if this is the first time Katrina has started.
 
+    private ArrayList<KatrinaModule> miscMods;
+
     private View mainUI = null; //home screen
     private View appUI = null; //app list
 
     public MainUI(){
         super();
         for(int i=0;i<contactInfo.length;i++) contactInfo[i] = new ContactInfo(); //setup the contact info.  Errors out if we dont do this.
+        miscMods = new ArrayList<>();
     }
 
     @Override
@@ -93,7 +96,6 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             SharedPreferences.Editor e = prefs.edit();
             e.putBoolean("firstInit",false);
             e.commit();
-            firstInit = false;
         }else{
             clearContacts();
             loadContacts(prefs);
@@ -124,6 +126,9 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         contact3.setOnLongClickListener(this);
         contact4.setOnLongClickListener(this);
         contact5.setOnLongClickListener(this);
+
+        View setContact = mainUI.findViewById(R.id.action_set_contacts);
+        setContact.setOnLongClickListener(this);
 
         Button emergency = (Button)mainUI.findViewById(R.id.action_emergency);
         emergency.setOnLongClickListener(this);
@@ -203,26 +208,11 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()){
-            case R.id.action_settings:
-                return true;
+            //case R.id.action_settings:
+            //    return true;
             case R.id.action_set_contacts:
-                Intent intent = new Intent(MainUI.this,ContactsUI.class);
-
-                Bundle dataBundle = new Bundle();
-                Bundle contactsBundle = new Bundle();
-                dataBundle.putInt("maxSelection", 5);
-
-                for (int i=0;i<contactInfo.length;i++){
-                    Bundle b = new Bundle();
-                    b.putLong("id",contactInfo[i].id);
-                    b.putString("phone",contactInfo[i].phone);
-                    contactsBundle.putBundle(""+i,b);
-                }
-                dataBundle.putBundle("contactSelected",contactsBundle);
-
-                intent.putExtra("data",dataBundle);
-                startActivityForResult(intent, R.id.ContactSelection);
-                break;
+                startContactActivity();
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -264,6 +254,9 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             case R.id.action_emergency:
                 this.onEmergency();
                 break;
+            case R.id.action_set_contacts:
+                startContactActivity();
+                break;
         }
         return false;
     }
@@ -275,11 +268,9 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         Log.i("onActivityResult","requestCode: " + requestCode);
         Log.i("onActivityResult","resultCode: " + resultCode);
         if (resultCode == Activity.RESULT_OK){
-            //Bundle b = data.getBundleExtra("contacts");
-            /*Log.i("onActivityResult", data.getStringExtra("result"));*/
-
             switch (requestCode){
                 case R.id.ContactSelection:
+                    if (firstInit) firstInit = false;
                     clearContacts();
                     Bundle contacts = data.getBundleExtra("Contacts");
                     if (contacts != null){
@@ -350,7 +341,6 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             Toast.makeText(this,"DEBUG! onEmergency Executed.",Toast.LENGTH_SHORT).show();
             return;
         }
-        //TODO Text all numbers with location. Call emergency services.
 
         for (ContactInfo c : contactInfo) c.text("EMERGENCY!");
 
@@ -360,6 +350,25 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
     }
 
     //Custom Code
+    private void startContactActivity(){
+        Intent intent = new Intent(MainUI.this,ContactsUI.class);
+
+        Bundle dataBundle = new Bundle();
+        Bundle contactsBundle = new Bundle();
+        dataBundle.putInt("maxSelection", 5);
+
+        for (int i=0;i<contactInfo.length;i++){
+            Bundle b = new Bundle();
+            b.putLong("id",contactInfo[i].id);
+            b.putString("phone",contactInfo[i].phone);
+            contactsBundle.putBundle(""+i,b);
+        }
+        dataBundle.putBundle("contactSelected",contactsBundle);
+
+        intent.putExtra("data",dataBundle);
+        startActivityForResult(intent, R.id.ContactSelection);
+    }
+
     private void loadContacts(SharedPreferences prefs){
         for (int i=0;i<contactInfo.length;i++){
             View contact=null;
@@ -522,6 +531,11 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             e.putBoolean(mod.getUniqueID(),mod.isActive());
         }
 
+        for (KatrinaModule mod : miscMods){
+            Log.i("saveModuleStates","UID: " + mod.getUniqueID() + "  State: " + mod.isActive());
+            e.putBoolean(mod.getUniqueID(),mod.isActive());
+        }
+
         e.commit();
     }
 
@@ -536,15 +550,28 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         @Override
         protected Void doInBackground(Void... params) {
 
+            //TODO categorize based on module type.
             String[] modules = getResources().getStringArray(R.array.Modules); //get module list
             try {
                 for (String module : modules) { //for each module
                     Class cls = Class.forName(module); //get the class from the module list
                     KatrinaModule moduleInstance = (KatrinaModule) cls.newInstance(); //create a new instance (i.e. new Class)
                     //moduleInstance.registerKMListener(moduleAdapter); //register KMListener
-                    moduleInstance.setActive(prefs.getBoolean(moduleInstance.getUniqueID(),false));
-                    moduleInstance.registerEmergencyListener(MainUI.this); //register EmergencyListener
-                    moduleAdapter.addModule(moduleInstance); //add module to home screen
+
+                    switch(moduleInstance.getModuleType()){
+                        case MODULE:
+                        case APP:
+                            moduleInstance.registerEmergencyListener(MainUI.this); //register EmergencyListener
+                            moduleAdapter.addModule(moduleInstance); //add module to home screen
+                            moduleInstance.setActive(prefs.getBoolean(moduleInstance.getUniqueID(),false));
+                            break;
+                        case MISC:
+                            moduleInstance.registerEmergencyListener(MainUI.this); //register EmergencyListener
+                            moduleInstance.setContext(MainUI.this);
+                            miscMods.add(moduleInstance);
+                            moduleInstance.setActive(prefs.getBoolean(moduleInstance.getUniqueID(),false));
+                            break;
+                    }
                 }
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();

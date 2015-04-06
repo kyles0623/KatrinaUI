@@ -19,17 +19,24 @@ public interface KatrinaModule {
     //public void registerKMListener(KatrinaModuleListener kmListener); //use this to change your icon. MUST HAVE AN ID!
 
     //VERSION 2.0
-    enum MOD_TYPE{ MODULE, APP, MISC }
-    public Drawable getIconImage(); //set a module's displayed image.
-    public String getName();  //get the module's name.
-    public boolean onModuleClick(Context c);
-    public boolean onModuleLongClick(Context c);
+    enum MOD_TYPE{
+        MODULE,
+        APP,
+        MISC
+    }
+
+    public Drawable getIconImage(); //set a module's displayed image.  //MODULE and APP
+    public String getName();  //get the module's name.    //MODULE and APP
+    public boolean onModuleClick(Context c);  //MODULE and APP
+    public boolean onModuleLongClick(Context c);  //MODULE and APP
     public String getError();
     public MOD_TYPE getModuleType(); //get a module type.
     public void registerEmergencyListener(EmergencyListener emergencyListener); //optional.  Use this to notify an emergency situation.
-    public void setID(int id); //use this to set your module id.  REQUIRED FOR KatrinaModuleListener!
-    public void registerKMListener(KatrinaModuleListener kmListener); //use this to change your icon. MUST HAVE AN ID!
+    public void setID(int id); //use this to set your module id.  REQUIRED FOR KatrinaModuleListener!  //MODULE and APP
+    public void registerKMListener(KatrinaModuleListener kmListener); //use this to change your icon. MUST HAVE AN ID!  //MODULE and APP
     public void setActive(boolean active);
     public boolean isActive();
     public String getUniqueID();
+
+    public void setContext(Context c);  //MISC
 }
