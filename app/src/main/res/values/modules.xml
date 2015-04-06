@@ -2,5 +2,7 @@
 <resources>
     <string-array name="Modules">
         <item>com.katrina.modules.TestMod</item>
+        <item>com.katrina.modules.falldetector.FallDetectorModule</item>
+        <item>com.katrina.modules.pillreminder.PillReminderModule</item>
     </string-array>
 </resources>

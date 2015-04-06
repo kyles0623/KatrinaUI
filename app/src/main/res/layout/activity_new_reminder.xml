@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:isScrollContainer="true" >
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="16dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingTop="16dp"
+        tools:context=".New_Reminder_Activity" >
+
+        <!--Enter Medicine Label and Textbox-->
+        <TextView
+            android:id="@+id/new_reminder_name_label"
+            android:text="@string/new_reminder_name"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <EditText
+            android:id="@+id/new_reminder_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/new_reminder_name_label"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
+            android:inputType="textCapWords"
+            android:ems="10"
+            android:hint="@string/new_reminder_name_instruction" />
+
+        <View
+            android:id="@+id/divider2"
+            style="@style/Divider"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/new_reminder_name" />
+
+        <!--Reminder Interval label and combobox-->
+        <TextView
+            android:id="@+id/new_reminder_interval_label"
+            android:text="@string/new_reminder_interval"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/divider2"/>
+
+        <RadioGroup
+            android:id="@+id/new_reminder_interval_radio_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/new_reminder_interval_label">
+            <RadioButton
+                android:id="@+id/new_reminder_radio_daily"
+                android:text="@string/new_reminder_radio_daily"
+                android:onClick="onIntervalRadioButtonClicked"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+            <RadioButton
+                android:id="@+id/new_reminder_radio_monthly"
+                android:text="@string/new_reminder_radio_monthly"
+                android:onClick="onIntervalRadioButtonClicked"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </RadioGroup>
+
+        <View
+            android:id="@+id/divider3"
+            style="@style/Divider"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/new_reminder_interval_radio_group" />
+
+        <!--Daily Spinner Options-->
+        <Spinner
+            android:id="@+id/new_reminder_daily_spinner"
+            android:entries="@array/new_reminder_daily_opts_array"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/new_reminder_interval_radio_group"
+            android:visibility="gone">
+            </Spinner>
+
+        <TextView
+            android:id="@+id/new_reminder_choose_days_label"
+            android:text="@string/new_reminder_interval"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/new_reminder_daily_spinner"
+            android:visibility="gone" />
+
+        <!--Weekly Checkbox Options-->
+        <RelativeLayout
+            android:id="@+id/new_reminder_checkbox_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/new_reminder_choose_days_label"
+            android:visibility="gone">
+            <CheckBox
+                android:id="@+id/new_reminder_sunday"
+                android:text="@string/new_reminder_sunday"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent" />
+            <CheckBox
+                android:id="@+id/new_reminder_monday"
+                android:text="@string/new_reminder_monday"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_below="@+id/new_reminder_sunday" />
+            <CheckBox
+                android:id="@+id/new_reminder_tuesday"
+                android:text="@string/new_reminder_tuesday"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_below="@+id/new_reminder_monday" />
+            <CheckBox
+                android:id="@+id/new_reminder_wednesday"
+                android:text="@string/new_reminder_wednesday"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_below="@+id/new_reminder_tuesday" />
+            <CheckBox
+                android:id="@+id/new_reminder_thursday"
+                android:text="@string/new_reminder_thursday"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_below="@+id/new_reminder_wednesday" />
+            <CheckBox
+                android:id="@+id/new_reminder_friday"
+                android:text="@string/new_reminder_friday"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_below="@+id/new_reminder_thursday" />
+            <CheckBox
+                android:id="@+id/new_reminder_saturday"
+                android:text="@string/new_reminder_saturday"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_below="@+id/new_reminder_friday" />
+        </RelativeLayout>
+
+        <View
+            android:id="@+id/divider4"
+            style="@style/Divider"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/new_reminder_checkbox_container" />
+
+
+        <!--Start Date-->
+        <TextView
+            android:id="@+id/new_reminder_start_date_label"
+            android:text="@string/new_reminder_start_date"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/divider4" />
+        <DatePicker
+            android:id="@+id/new_reminder_start_date_picker"
+            android:calendarViewShown="false"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/new_reminder_start_date_label" />
+
+        <!--Ringtone Selection-->
+        <LinearLayout
+            android:id="@+id/alarm_ringtone_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/new_reminder_start_date_picker"
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/alarm_label_tone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:text="@string/details_alarm_tone"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/alarm_label_tone_selection"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/activity_vertical_margin"
+                android:text="@string/details_alarm_tone_default"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <View
+            android:id="@+id/divider5"
+            style="@style/Divider"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/alarm_ringtone_container" />
+
+    </RelativeLayout>
+
+</ScrollView>

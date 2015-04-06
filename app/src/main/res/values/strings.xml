@@ -13,4 +13,41 @@
     <string name="preference_file">KatrinaPrefs</string>
     <string name="homescreen_file">HomescreenPrefs</string>
     <string name="module_file">ModuleStates</string>
+
+
+
+    <!-- Pill Reminder Strings -->
+    <string name="pill_reminder_name">Pill Reminder</string>
+    <string name="s_add_reminder">Add Reminder</string>
+    <string name="title_activity_new__reminder_">Add New Reminder</string>
+    <string name="new_reminder_name">Medicine Name</string>
+    <string name="new_reminder_name_instruction">Enter Medicine Name</string>
+
+    <string name="new_reminder_interval">Reminder Interval</string>
+    <string name="new_reminder_radio_daily">Daily</string>
+    <string name="new_reminder_radio_weekly">Weekly</string>
+    <string name="new_reminder_choose_days">Choose Days</string>
+    <string name="new_reminder_radio_monthly">Monthly</string>
+    <string-array name="new_reminder_daily_opts_array">
+        <item>One Time Daily</item>
+        <item>Two Times Daily</item>
+        <item>Three Times Daily</item>
+        <item>Four Times Daily</item>
+        <item>Five Times Daily</item>
+        <item>Six Times Daily</item>
+    </string-array>
+
+    <string name="details_repeat_weekly">Repeat Weekly</string>
+    <string name="new_reminder_sunday">Sunday</string>
+    <string name="new_reminder_monday">Monday</string>
+    <string name="new_reminder_tuesday">Tuesday</string>
+    <string name="new_reminder_wednesday">Wednesday</string>
+    <string name="new_reminder_thursday">Thursday</string>
+    <string name="new_reminder_friday">Friday</string>
+    <string name="new_reminder_saturday">Saturday</string>
+
+    <string name="new_reminder_start_date">Start Date</string>
+
+    <string name="details_alarm_tone">Alarm Tone</string>
+    <string name="details_alarm_tone_default">Select an alarm tone</string>
 </resources>

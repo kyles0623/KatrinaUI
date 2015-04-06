@@ -65,4 +65,19 @@ public class TestMod implements KatrinaModule {
     public String getUniqueID() {
         return "TESTMOD001";
     }
+
+    @Override
+    public void initialize(Context context) {
+
+    }
+
+    @Override
+    public void stop() {
+
+    }
+
+    public void setContext(Context context)
+    {
+
+    }
 }
