@@ -93,7 +93,6 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             SharedPreferences.Editor e = prefs.edit();
             e.putBoolean("firstInit",false);
             e.commit();
-            firstInit = false;
         }else{
             clearContacts();
             loadContacts(prefs);
@@ -135,17 +134,6 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         new AppSyncTask(this,loadHomescreen(this.getSharedPreferences(getString(R.string.homescreen_file),Context.MODE_PRIVATE))).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
-    //save state system?
-    /*@Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-    }*/
-
-    /*@Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        if ((intent.getFlags() & Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT) != Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT) setContentView(mainUI);
-    }*/
 
     @Override
     protected void onStop(){
@@ -280,6 +268,7 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
 
             switch (requestCode){
                 case R.id.ContactSelection:
+                    firstInit = firstInit?false:true;
                     clearContacts();
                     Bundle contacts = data.getBundleExtra("Contacts");
                     if (contacts != null){
@@ -350,6 +339,7 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             Toast.makeText(this,"DEBUG! onEmergency Executed.",Toast.LENGTH_SHORT).show();
             return;
         }
+        Log.d("MainUI","EMERGENCY MODE ACTIVATED");
         //TODO Text all numbers with location. Call emergency services.
 
         for (ContactInfo c : contactInfo) c.text("EMERGENCY!");
@@ -525,7 +515,11 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         e.commit();
     }
 
-    //AsyncTasks
+    /**
+     * AsyncTask to obtain the list of Katrina Modules. Modules
+     * are set Active if set in preferences, and modules are given
+     * an emergencyListener instance.
+     */
     private class ModSyncTask extends AsyncTask<Void,Void,Void> {
         private final SharedPreferences prefs;
 

@@ -5,9 +5,9 @@ import android.content.Intent;
 import android.graphics.drawable.Drawable;
 
 /**
+ * This is a module to start APK apps on an android system.
  * Created by Alexander on 2/27/2015.
  */
-//This is a module to start APK apps on an android system.
 public class ModuleApp implements KatrinaModule {
     private String name,label;
     private Drawable icon;
@@ -68,5 +68,20 @@ public class ModuleApp implements KatrinaModule {
     @Override
     public String getUniqueID() {
         return this.name;
+    }
+
+    @Override
+    public void initialize(Context context) {
+
+    }
+
+    @Override
+    public void stop() {
+
+    }
+
+    public void setContext(Context context)
+    {
+
     }
 }
