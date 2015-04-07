@@ -44,15 +44,12 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
     private ContactInfo[] contactInfo = new ContactInfo[5]; //the 5 top contacts.
     private boolean firstInit = true; //check to see if this is the first time Katrina has started.
 
-    private ArrayList<KatrinaModule> miscMods;
-
     private View mainUI = null; //home screen
     private View appUI = null; //app list
 
     public MainUI(){
         super();
         for(int i=0;i<contactInfo.length;i++) contactInfo[i] = new ContactInfo(); //setup the contact info.  Errors out if we dont do this.
-        miscMods = new ArrayList<>();
     }
 
     @Override
@@ -96,6 +93,7 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             SharedPreferences.Editor e = prefs.edit();
             e.putBoolean("firstInit",false);
             e.commit();
+            firstInit = false;
         }else{
             clearContacts();
             loadContacts(prefs);
@@ -140,17 +138,6 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         new AppSyncTask(this,loadHomescreen(this.getSharedPreferences(getString(R.string.homescreen_file),Context.MODE_PRIVATE))).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
-    //save state system?
-    /*@Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-    }*/
-
-    /*@Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        if ((intent.getFlags() & Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT) != Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT) setContentView(mainUI);
-    }*/
 
     @Override
     protected void onStop(){
@@ -270,7 +257,7 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         if (resultCode == Activity.RESULT_OK){
             switch (requestCode){
                 case R.id.ContactSelection:
-                    if (firstInit) firstInit = false;
+                    firstInit = firstInit?false:true;
                     clearContacts();
                     Bundle contacts = data.getBundleExtra("Contacts");
                     if (contacts != null){
@@ -341,6 +328,8 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             Toast.makeText(this,"DEBUG! onEmergency Executed.",Toast.LENGTH_SHORT).show();
             return;
         }
+        Log.d("MainUI","EMERGENCY MODE ACTIVATED");
+        //TODO Text all numbers with location. Call emergency services.
 
         for (ContactInfo c : contactInfo) c.text("EMERGENCY!");
 
@@ -531,15 +520,14 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             e.putBoolean(mod.getUniqueID(),mod.isActive());
         }
 
-        for (KatrinaModule mod : miscMods){
-            Log.i("saveModuleStates","UID: " + mod.getUniqueID() + "  State: " + mod.isActive());
-            e.putBoolean(mod.getUniqueID(),mod.isActive());
-        }
-
         e.commit();
     }
 
-    //AsyncTasks
+    /**
+     * AsyncTask to obtain the list of Katrina Modules. Modules
+     * are set Active if set in preferences, and modules are given
+     * an emergencyListener instance.
+     */
     private class ModSyncTask extends AsyncTask<Void,Void,Void> {
         private final SharedPreferences prefs;
 
@@ -550,28 +538,15 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         @Override
         protected Void doInBackground(Void... params) {
 
-            //TODO categorize based on module type.
             String[] modules = getResources().getStringArray(R.array.Modules); //get module list
             try {
                 for (String module : modules) { //for each module
                     Class cls = Class.forName(module); //get the class from the module list
                     KatrinaModule moduleInstance = (KatrinaModule) cls.newInstance(); //create a new instance (i.e. new Class)
                     //moduleInstance.registerKMListener(moduleAdapter); //register KMListener
-
-                    switch(moduleInstance.getModuleType()){
-                        case MODULE:
-                        case APP:
-                            moduleInstance.registerEmergencyListener(MainUI.this); //register EmergencyListener
-                            moduleAdapter.addModule(moduleInstance); //add module to home screen
-                            moduleInstance.setActive(prefs.getBoolean(moduleInstance.getUniqueID(),false));
-                            break;
-                        case MISC:
-                            moduleInstance.registerEmergencyListener(MainUI.this); //register EmergencyListener
-                            moduleInstance.setContext(MainUI.this);
-                            miscMods.add(moduleInstance);
-                            moduleInstance.setActive(prefs.getBoolean(moduleInstance.getUniqueID(),false));
-                            break;
-                    }
+                    moduleInstance.setActive(prefs.getBoolean(moduleInstance.getUniqueID(),false));
+                    moduleInstance.registerEmergencyListener(MainUI.this); //register EmergencyListener
+                    moduleAdapter.addModule(moduleInstance); //add module to home screen
                 }
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();

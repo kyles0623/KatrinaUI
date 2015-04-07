@@ -68,4 +68,19 @@ public class TestMod implements KatrinaModule {
 
     @Override
     public void setContext(Context c) {}
+
+    @Override
+    public void initialize(Context context) {
+
+    }
+
+    @Override
+    public void stop() {
+
+    }
+
+    public void setContext(Context context)
+    {
+
+    }
 }

@@ -20,15 +20,23 @@ public interface KatrinaModule {
 
     //VERSION 2.0
     enum MOD_TYPE{
-        MODULE,
-        APP,
-        MISC
-    }
 
-    public Drawable getIconImage(); //set a module's displayed image.  //MODULE and APP
-    public String getName();  //get the module's name.    //MODULE and APP
-    public boolean onModuleClick(Context c);  //MODULE and APP
-    public boolean onModuleLongClick(Context c);  //MODULE and APP
+        //Basic Module Type
+        MODULE,
+
+        //Separate Application on PHone
+        APP,
+
+        //???
+        MISC,
+
+
+        //Runs in background. No view attached
+        BACKGROUND }
+    public Drawable getIconImage(); //set a module's displayed image.
+    public String getName();  //get the module's name.
+    public boolean onModuleClick(Context c);
+    public boolean onModuleLongClick(Context c);
     public String getError();
     public MOD_TYPE getModuleType(); //get a module type.
     public void registerEmergencyListener(EmergencyListener emergencyListener); //optional.  Use this to notify an emergency situation.
@@ -37,6 +45,17 @@ public interface KatrinaModule {
     public void setActive(boolean active);
     public boolean isActive();
     public String getUniqueID();
+
+    /**
+     * Called to initialize the state of the KatrinaModule.
+     * @param context Context KatrinaModule is attached to.
+     */
+    public void initialize(Context context);
+
+    /**
+     * Called when the application is closed.
+     */
+    public void stop();
 
     public void setContext(Context c);  //MISC
 }

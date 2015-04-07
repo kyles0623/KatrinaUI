@@ -22,8 +22,12 @@ import java.util.ArrayList;
 /**
  * Created by alatnet on 3/7/2015.
  */
-
 public class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, KatrinaModuleListener {
+
+    /**
+     * Private Class to contain a KatrinaModule and View associated
+     * with it.
+     */
     private class ModuleView {
         public final KatrinaModule mod;
         public final View view;
@@ -37,14 +41,12 @@ public class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClic
     private final Context mContext;
     private final ArrayList<ModuleView> moduleList;
     private final ArrayList<ModuleView> appList;
-    //private final ArrayList<View> moduleViews;
     private final AlertDialog.Builder aBuild;
     private final LayoutInflater inflater;
 
     public ModuleAdapter(Context c){
         moduleList = new ArrayList<>();
         appList = new ArrayList<>();
-        //moduleViews = new ArrayList<>();
         mContext = c;
         aBuild = new AlertDialog.Builder(mContext);
         inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -55,10 +57,14 @@ public class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClic
         int position = moduleList.size();
         m.setID(position);
         m.registerKMListener(this);
+        m.initialize(mContext);
         //moduleViews.add(createModView(m));
         switch (m.getModuleType()){
             case MODULE:
                 moduleList.add(new ModuleView(m,createModView(m)));
+                break;
+            //No view attached
+            case BACKGROUND:
                 break;
             case APP:
             case MISC:

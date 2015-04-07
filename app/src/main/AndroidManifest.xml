@@ -69,6 +69,13 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <activity android:name="com.katrina.modules.pillreminder.New_Reminder_Activity" />
+        <activity android:name="com.katrina.modules.pillreminder.Pill_Reminder_Main" />
+        <activity android:name="com.katrina.modules.pillreminder.AlarmScreen" />
+
+        <service android:name="com.katrina.modules.falldetector.FallDetectionService" />
+        <service android:name="com.katrina.modules.pillreminder.AlarmService" />
     </application>
 
 </manifest>
