@@ -1,4 +1,11 @@
 <resources>
     <color name="transparent">#00FFFFFF</color>
-    <color name="transparentGrey">#A0A0A0A0</color>
+    <!-- <color name="transparentGrey">#A0A0A0A0</color>-->
+    <color name="contact_background">#ffffff</color>
+    <color name="textColor">#555555</color>
+    <color name="basic_button_bg">#68c4ea</color>
+    <color name="selection_bg">#DEDEDE</color>
+    <color name="selection_text_color">#424242</color>
+    <color name="basic_button_text">#ffffff</color>
+
 </resources>

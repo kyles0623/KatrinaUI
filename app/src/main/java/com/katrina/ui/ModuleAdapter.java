@@ -115,7 +115,8 @@ public class ModuleAdapter extends BaseAdapter implements AdapterView.OnItemClic
 
     //Android stuff.
     //Used to execute a module's custom code.
-    public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+    public void onItemClick(AdapterView<?> parent, View v,
+                            int position, long id) {
         KatrinaModule mod = (KatrinaModule)getItem(position); //moduleList.get(position).mod;
         //if (!mod.doAction(mContext)) {
         //    aBuild.setMessage(mod.getError())

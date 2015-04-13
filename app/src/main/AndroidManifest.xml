@@ -10,9 +10,12 @@
     <uses-permission android:name="android.permission.SEND_SMS" /> <!-- Send SMS's -->
     <uses-permission android:name="android.permission.WRITE_SMS" /> <!-- Write SMS's -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /> <!-- Get location of phone -->
-
+    <permission android:name="android.permission.FLASHLIGHT"
+        android:permissionGroup="android.permission-group.HARDWARE_CONTROLS"
+        android:protectionLevel="normal" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    <uses-feature android:name="android.hardware.camera.flash"/>
     <uses-feature android:name="android.hardware.camera.autofocus"  android:required="false" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
@@ -20,7 +23,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/KatrinaTheme" >
 
@@ -33,9 +36,9 @@
             android:stateNotNeeded="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <!--<category android:name="android.intent.category.HOME" />
-                <category android:name="android.intent.category.LAUNCHER" />-->
+                <!--<category android:name="android.intent.category.DEFAULT" />-->
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
@@ -76,6 +79,7 @@
 
         <service android:name="com.katrina.modules.falldetector.FallDetectionService" />
         <service android:name="com.katrina.modules.pillreminder.AlarmService" />
+
     </application>
 
 </manifest>

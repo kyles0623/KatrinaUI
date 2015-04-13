@@ -19,10 +19,12 @@
         android:layout_alignParentEnd="false"
         android:layout_above="@+id/contactsSave"
         android:choiceMode="multipleChoice"
+        android:groupIndicator="@drawable/number_expansion_selector"
         android:clickable="true"
         android:drawSelectorOnTop="false" />
 
     <Button
+        style="@style/DefaultButton"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/activity_contacts_ui_contactsSave"

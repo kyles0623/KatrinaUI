@@ -18,7 +18,7 @@ public class Utilities {
                             mContext.getContentResolver().openInputStream(mUri),
                             null);
                 } catch (Exception e) {
-                    Log.w("checkUriExists", "Unable to open content: " + mUri, e);
+                    //Log.w("checkUriExists", "Unable to open content: " + mUri, e);
                     mUri = null;
                 }
             } else {

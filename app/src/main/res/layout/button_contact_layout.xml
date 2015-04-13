@@ -11,11 +11,14 @@
     android:id="@+id/contactSlot"
     tools:context=".MainUI"
     android:longClickable="false"
+    android:padding="5dp"
     android:background="@drawable/button_contact_style_homescreen">
 
     <ImageView
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginRight="5dp"
         android:id="@+id/cImg"
         android:layout_row="0"
         android:layout_column="0"
@@ -23,13 +26,13 @@
         android:layout_columnSpan="1"
         android:src="@mipmap/unknown"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
         android:duplicateParentState="true" />
 
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@color/textColor"
         android:text="Set Contact"
         android:id="@+id/cName"
         android:layout_row="0"
@@ -44,6 +47,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@color/textColor"
         android:text="(777)-777-777"
         android:id="@+id/cPhone"
         android:layout_row="1"
@@ -53,4 +57,10 @@
         android:layout_toEndOf="@+id/cImg"
         android:duplicateParentState="true" />
 
+    <ImageView
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/ic_phone"
+        android:id="@+id/phone_button"
+        android:layout_alignParentEnd="true"/>
 </RelativeLayout>

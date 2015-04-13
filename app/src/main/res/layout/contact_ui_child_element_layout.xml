@@ -19,6 +19,9 @@
         android:layout_rowSpan="2" />
 
     <CheckBox
+        android:button="@drawable/custom_checkbox"
+        android:layout_gravity="center_vertical"
+        android:layout_marginRight="10dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/cSelect"
@@ -35,6 +38,7 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="(777)-777-7777"
+        android:textColor="@color/selection_text_color"
         android:id="@+id/cNumber"
         android:layout_row="0"
         android:layout_column="2"
@@ -47,6 +51,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@color/selection_text_color"
         android:text="Type"
         android:id="@+id/cType"
         android:layout_row="1"

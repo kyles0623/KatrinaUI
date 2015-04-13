@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:columnCount="3"
+    android:background="#ffffff"
     android:rowCount="1">
 
     <Space
@@ -18,13 +20,16 @@
         android:id="@+id/cImg"
         android:layout_row="0"
         android:layout_column="1"
+        android:layout_marginRight="10dp"
         android:src="@mipmap/unknown" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Contact Name"
+        android:textColor="@color/textColor"
         android:id="@+id/cName"
         android:layout_row="0"
         android:layout_column="2" />

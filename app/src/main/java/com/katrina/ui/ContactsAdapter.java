@@ -248,6 +248,12 @@ public class ContactsAdapter extends BaseExpandableListAdapter implements Expand
             }
         }
 
+        /**
+         * WHAT IS THIS EVEN SUPPOSED TO DO
+         * @param contentResolver
+         * @param contactId
+         * @return
+         */
         private Uri getPhotoUri(ContentResolver contentResolver, long contactId) {
             try {
                 Cursor cursor = contentResolver
@@ -272,7 +278,7 @@ public class ContactsAdapter extends BaseExpandableListAdapter implements Expand
                 }
 
             } catch (Exception e) {
-                e.printStackTrace();
+                //e.printStackTrace();
                 return null;
             }
 

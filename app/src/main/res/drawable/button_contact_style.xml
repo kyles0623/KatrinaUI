@@ -4,5 +4,5 @@
         android:state_pressed="true" />
     <item android:drawable="@color/material_blue_grey_800"
         android:state_focused="true" />
-    <item android:drawable="@color/transparent" />
+    <item android:drawable="@color/selection_bg" />
 </selector>

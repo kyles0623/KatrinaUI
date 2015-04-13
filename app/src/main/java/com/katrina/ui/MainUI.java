@@ -35,7 +35,11 @@ import java.util.List;
 
 //TODO Home and Back button events. Home and Back must bring screen back to home screen when in app list.
 
+/**
+ *
+ */
 public class MainUI extends Activity implements View.OnClickListener, View.OnLongClickListener, EmergencyListener {
+
     private GridView moduleGridView;  //Grid list of modules and APK apps on home screen.
     private ModuleAdapter moduleAdapter; //adapter to manage the modules displayed on the home screen.
     private ListView appsListView; //list view of applications installed on phone
@@ -125,11 +129,11 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         contact4.setOnLongClickListener(this);
         contact5.setOnLongClickListener(this);
 
-        View setContact = mainUI.findViewById(R.id.action_set_contacts);
-        setContact.setOnLongClickListener(this);
+        //View setContact = mainUI.findViewById(R.id.action_set_contacts);
+        //setContact.setOnLongClickListener(this);
 
-        Button emergency = (Button)mainUI.findViewById(R.id.action_emergency);
-        emergency.setOnLongClickListener(this);
+        //Button emergency = (Button)mainUI.findViewById(R.id.action_emergency);
+        //emergency.setOnLongClickListener(this);
 
         //load modules.
         new ModSyncTask(this.getSharedPreferences(getString(R.string.module_file),Context.MODE_PRIVATE)).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
@@ -200,6 +204,10 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             case R.id.action_set_contacts:
                 startContactActivity();
                 return true;
+            case R.id.action_view_apps:
+                setContentView(appUI);
+                return true;
+
         }
 
         return super.onOptionsItemSelected(item);
@@ -210,9 +218,9 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
     @Override
     public void onClick(View v) {
         switch (v.getId()){
-            case R.id.apps:
-                setContentView(appUI);
-                break;
+            //case R.id.apps:
+            //    setContentView(appUI);
+            //    break;
             case R.id.backToMain:
                 setContentView(mainUI);
                 break;
@@ -238,19 +246,18 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             case R.id.contact5:
                 contactInfo[4].call(this);
                 break;
-            case R.id.action_emergency:
-                this.onEmergency();
-                break;
             case R.id.action_set_contacts:
                 startContactActivity();
                 break;
+
         }
         return false;
     }
 
     //used to receive data from separate activities started by this activity.
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+    protected void onActivityResult(int requestCode, int resultCode,
+                                    Intent data){
         super.onActivityResult(requestCode,resultCode,data);
         Log.i("onActivityResult","requestCode: " + requestCode);
         Log.i("onActivityResult","resultCode: " + resultCode);
@@ -263,11 +270,11 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
                     if (contacts != null){
                         int currContact = 1;
                         for (String key : contacts.keySet()){
-                            View contact=null;
+                            final View contact;
                             TextView cName;
                             TextView cPhone;
                             ImageView cImg;
-
+                            ImageView cPhoneIcon;
                             Bundle contactData = contacts.getBundle(key);
                             switch(currContact){
                                 case 1:
@@ -290,28 +297,61 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
                                     contact=mainUI.findViewById(R.id.contact5);
                                     Log.i("onActivityResult","Setting contact 5");
                                     break;
+                                default:
+                                    contact = null;
+                                    break;
                             }
-
-                            if (contact != null) {
+                            if(contact != null && contactData.getLong("id") == -1)
+                            {
+                                contact.setVisibility(View.GONE);
+                            }
+                            else if (contact != null) {
+                                contact.setVisibility(View.VISIBLE);
                                 cName = (TextView) contact.findViewById(R.id.cName);
                                 cPhone = (TextView) contact.findViewById(R.id.cPhone);
                                 cImg = (ImageView) contact.findViewById(R.id.cImg);
-
+                                cPhoneIcon = (ImageView) contact.findViewById(R.id.phone_button);
                                 String type = contactData.getString("Type");
                                 cName.setText(contactData.getString("Name"));
 
-                                if (!type.isEmpty()) cPhone.setText(contactData.getString("Number") + " ("+type+")");
-                                else cPhone.setText(contactData.getString("Number"));
+
+                                cPhoneIcon.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        onLongClick(contact);
+                                    }
+                                });
+
+                                if (!type.isEmpty()) {
+                                    cPhone.setText(contactData.getString("Number") + " (" + type + ")");
+                                }
+                                else {
+                                    cPhone.setText(contactData.getString("Number"));
+                                }
 
                                 String photo = contactData.getString("Photo");
-                                if (photo.equals("null")) cImg.setImageResource(R.mipmap.unknown);
-                                else cImg.setImageURI(Uri.parse(photo));
+
+                                if (photo.equals("null"))
+                                {
+                                    cImg.setImageResource(R.mipmap.unknown);
+                                }
+                                else
+                                {
+                                    cImg.setImageURI(Uri.parse(photo));
+                                }
 
                                 contactInfo[currContact-1].name = contactData.getString("Name");
                                 contactInfo[currContact-1].phone = contactData.getString("Number");
                                 contactInfo[currContact-1].type = type;
-                                if (photo.equals("null")) contactInfo[currContact-1].photo = null;
-                                else contactInfo[currContact-1].photo = Uri.parse(photo);
+
+                                if (photo.equals("null"))
+                                {
+                                    contactInfo[currContact - 1].photo = null;
+                                }
+                                else
+                                {
+                                    contactInfo[currContact - 1].photo = Uri.parse(photo);
+                                }
                             }
 
                             currContact++;
@@ -319,6 +359,7 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
                     }
                     break;
             }
+            saveContacts(this.getSharedPreferences(getString(R.string.preference_file), Context.MODE_PRIVATE));
         }
     }
 
@@ -347,9 +388,12 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         dataBundle.putInt("maxSelection", 5);
 
         for (int i=0;i<contactInfo.length;i++){
+            if(contactInfo[i].id == null) {
+                continue;
+            }
             Bundle b = new Bundle();
-            b.putLong("id",contactInfo[i].id);
-            b.putString("phone",contactInfo[i].phone);
+            b.putLong("id", contactInfo[i].id);
+            b.putString("phone", contactInfo[i].phone);
             contactsBundle.putBundle(""+i,b);
         }
         dataBundle.putBundle("contactSelected",contactsBundle);
@@ -360,10 +404,11 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
 
     private void loadContacts(SharedPreferences prefs){
         for (int i=0;i<contactInfo.length;i++){
-            View contact=null;
+            final View contact;
             TextView cName;
             TextView cPhone;
             ImageView cImg;
+            ImageView cPhoneButton;
 
             contactInfo[i].name = prefs.getString("Contact"+i+"-name","Set Contact");
             contactInfo[i].phone = prefs.getString("Contact"+i+"-number","(777)-777-7777");
@@ -387,13 +432,27 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
                 case 5:
                     contact=mainUI.findViewById(R.id.contact5);
                     break;
+                default:
+                    contact = null;
+                    break;
             }
-
+            if(contact != null && contactInfo[i].type.isEmpty())
+            {
+                contact.setVisibility(View.GONE);
+            }
             if (contact != null) {
                 cName = (TextView) contact.findViewById(R.id.cName);
                 cPhone = (TextView) contact.findViewById(R.id.cPhone);
                 cImg = (ImageView) contact.findViewById(R.id.cImg);
+                cPhoneButton = (ImageView) contact.findViewById(R.id.phone_button);
 
+                cPhoneButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        //OnLongClick method has code for calling user.
+                        onLongClick(contact);
+                    }
+                });
                 if (contactInfo[i].name.isEmpty()){
                     contactInfo[i].name = "";
                     contactInfo[i].phone = "";
@@ -422,6 +481,13 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
 
         //save contacts
         for (int i = 0; i < contactInfo.length; i++) {
+
+            //When app tries to save default contacts, their ids will be null
+            //and cause the app to throw an exception without this code
+            if(contactInfo[i].id == null)
+            {
+                continue;
+            }
             e.putString("Contact" + i + "-name", contactInfo[i].name);
             e.putString("Contact" + i + "-number", contactInfo[i].phone);
             e.putString("Contact" + i + "-type", contactInfo[i].type);
@@ -430,7 +496,7 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
             else e.putString("Contact" + i + "-photo", "null");
         }
 
-        e.commit();
+        e.apply();
     }
 
     private void clearContact(int slot){

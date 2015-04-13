@@ -304,7 +304,10 @@ public class Torch extends Activity implements Eula.OnEulaAgreedTo, SurfaceHolde
   public void surfaceCreated(SurfaceHolder holder) {
     Log.d(TAG, "surfaceCreated");
     try {
-      mCamera.setPreviewDisplay(holder);
+        if(mCamera != null && holder != null) {
+            mCamera.setPreviewDisplay(holder);
+        }
+
     } catch (IOException e) {
       e.printStackTrace();
     }

@@ -25,6 +25,8 @@ public class FallDetectionService extends Service {
 
     private long currentTime = System.currentTimeMillis();
 
+    private static boolean isRunning = false;
+
 	@Override
 	public IBinder onBind(Intent intent) {
 		return null;
@@ -67,12 +69,19 @@ public class FallDetectionService extends Service {
 		fallDetector.runDetector();
 		return super.onStartCommand(intent, flags, startId);
 	}
-	
+
+    public static boolean isRunning()
+    {
+        return isRunning;
+    }
+
 	@Override
 	public void onDestroy()
 	{
 		super.onDestroy();
+
 		fallDetector.pause();
+        isRunning = false;
 	}
 	
 	

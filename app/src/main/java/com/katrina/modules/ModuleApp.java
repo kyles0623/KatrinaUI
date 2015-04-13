@@ -5,13 +5,33 @@ import android.content.Intent;
 import android.graphics.drawable.Drawable;
 
 /**
+ * This class is an instantiation of the KatrinaModule
+ * interface and can represent and already installed
+ * android application.
  * Created by Alexander on 2/27/2015.
  */
-//This is a module to start APK apps on an android system.
 public class ModuleApp implements KatrinaModule {
-    private String name,label;
+
+    /**
+     * Package name of the application represented by the moduleApp
+     */
+    private String name,
+    /**
+     * Display name for the application
+      */
+        label;
+
+    /**
+     * Icon Drawable of the application
+     */
     private Drawable icon;
 
+    /**
+     *
+     * @param label
+     * @param name
+     * @param icon
+     */
     public ModuleApp(String label, String name, Drawable icon){
         this.name = name;
         this.label= label;
@@ -68,5 +88,15 @@ public class ModuleApp implements KatrinaModule {
     @Override
     public String getUniqueID() {
         return this.name;
+    }
+
+    @Override
+    public void initialize(Context context) {
+
+    }
+
+    @Override
+    public void stop() {
+
     }
 }

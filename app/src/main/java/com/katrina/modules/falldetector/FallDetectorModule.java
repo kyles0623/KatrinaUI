@@ -46,19 +46,28 @@ public class FallDetectorModule implements KatrinaModule {
      */
     private EmergencyListener emergencyListener;
 
+    /**
+     * Broadcast receiver for communicating with FallDetectorService.
+     */
+    private FallDetectorBroadcastReceiver broadcastReceiver;
+
 
     @Override
     public void initialize(Context context) {
         this.mainContext = context;
+        broadcastReceiver = new FallDetectorBroadcastReceiver();
         Intent intent = new Intent(context,FallDetectionService.class);
         IntentFilter filter = new IntentFilter(FALL_DETECTED_ACTION);
-        mainContext.registerReceiver(new FallDetectorBroadcastReceiver(),filter);
-        mainContext.startService(intent);
+        mainContext.registerReceiver(broadcastReceiver,filter);
+
+        if(!FallDetectionService.isRunning()) {
+            mainContext.startService(intent);
+        }
     }
 
     @Override
     public void stop() {
-
+        mainContext.unregisterReceiver(broadcastReceiver);
     }
 
     @Override
@@ -134,7 +143,6 @@ public class FallDetectorModule implements KatrinaModule {
             if(intent.getAction().equals(FALL_DETECTED_ACTION))
             {
                 if(emergencyListener != null) {
-
                     emergencyListener.onEmergency();
                 }
             }

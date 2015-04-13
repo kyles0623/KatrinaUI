@@ -9,6 +9,9 @@ import android.widget.Toast;
 import com.katrina.util.Utilities;
 
 /**
+ * Represents a Contact in the users phone.
+ * Contains basic information such as
+ * name, phone number, and photo.
  * Created by alatnet on 3/7/2015.
  */
 public class ContactInfo{
@@ -18,6 +21,11 @@ public class ContactInfo{
     public Uri photo = null;
     public Long id;
 
+    /**
+     * Call the contact using the phones
+     * default call application.
+     * @param c Context to call user from
+     */
     public void call(Context c){
         if (Utilities.DEBUG){
             Toast.makeText(c, "DEBUG! call Executed.", Toast.LENGTH_SHORT).show();
@@ -29,12 +37,11 @@ public class ContactInfo{
         c.startActivity(callIntent);
     }
 
-    public void text(/*Context c, */String msg){
-        /*Intent sendIntent = new Intent(Intent.ACTION_VIEW);
-        sendIntent.setData(Uri.parse("sms:"+phone));
-        sendIntent.putExtra("sms_body", msg);
-        c.startActivity(sendIntent);*/
-
+    /**
+     * Send the contact in the background.
+     * @param msg Message to send contact
+     */
+    public void text(String msg){
         if (Utilities.DEBUG) return;
         if (phone.isEmpty()) return;
         SmsManager smsManager = SmsManager.getDefault();

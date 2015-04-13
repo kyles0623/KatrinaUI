@@ -5,4 +5,6 @@
         android:orderInCategory="100" app:showAsAction="always" />-->
     <item android:id="@+id/action_set_contacts" android:title="@string/action_set_contacts"
         android:orderInCategory="100" app:showAsAction="never" />
+
+    <item android:id="@+id/action_view_apps" android:title="View Apps" />
 </menu>
