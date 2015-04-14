@@ -40,6 +40,8 @@ import java.util.List;
  */
 public class MainUI extends Activity implements View.OnClickListener, View.OnLongClickListener, EmergencyListener {
 
+    private static final String TAG = "MainUI";
+
     private GridView moduleGridView;  //Grid list of modules and APK apps on home screen.
     private ModuleAdapter moduleAdapter; //adapter to manage the modules displayed on the home screen.
     private ListView appsListView; //list view of applications installed on phone
@@ -141,7 +143,6 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
         //add apps to app list
         new AppSyncTask(this,loadHomescreen(this.getSharedPreferences(getString(R.string.homescreen_file),Context.MODE_PRIVATE))).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
-
 
     @Override
     protected void onStop(){
@@ -679,7 +680,6 @@ public class MainUI extends Activity implements View.OnClickListener, View.OnLon
                             break;
                         }
                     }
-
                 if (!addedToHS) appsAdapter.addModule(app,false);
 
                 currPos++;

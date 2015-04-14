@@ -7,5 +7,5 @@
     <color name="selection_bg">#DEDEDE</color>
     <color name="selection_text_color">#424242</color>
     <color name="basic_button_text">#ffffff</color>
-
+    <color name="popup_grey">#424542</color>
 </resources>

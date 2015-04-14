@@ -122,7 +122,10 @@
 
     </GridLayout>-->
 
-    <!-- This is for the flashlight module. It needs a SurfaceView to attach to. It won't work without it. -->
+    <!-- This is for the flashlight module. It needs a SurfaceView to attach to. It won't work without it.
+     But it is only 1dipX1dip, meaning it is practically invisible.
+     Using A View.INIVISIBLE or View.GONE will disable the flashlight.
+     -->
     <SurfaceView
         android:id="@+id/PREVIEW"
         android:layout_width="1dip"

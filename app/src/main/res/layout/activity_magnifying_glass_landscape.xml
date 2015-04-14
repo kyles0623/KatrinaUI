@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout"
+    android:layout_width="fill_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+
+<FrameLayout
+	android:id="@+id/preview"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:layout_weight="1">
+</FrameLayout>
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" >
+
+    <Button
+        android:id="@+id/buttonClick"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_weight="0.03"
+        android:text="Click"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <ZoomControls
+        android:id="@+id/CAMERA_ZOOM_CONTROLS"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.03"
+        android:layout_alignBottom="@+id/surface_camera"
+        android:layout_centerInParent="true" >
+    </ZoomControls>
+
+    <Button
+        android:id="@+id/buttonCancel"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_weight="0.03"
+        android:text="Cancel"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+</LinearLayout>
+
+</LinearLayout>

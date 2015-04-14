@@ -10,6 +10,7 @@ import android.graphics.SurfaceTexture;
 import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
+import android.os.Handler;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -17,30 +18,58 @@ import android.view.SurfaceView;
 import com.katrina.modules.EmergencyListener;
 import com.katrina.modules.KatrinaModule;
 import com.katrina.modules.KatrinaModuleListener;
-import com.katrina.modules.torch.Torch;
 import com.katrina.ui.R;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
+ * This Flashlight Module allows the user to activate the cameras flashlight
+ * when clicking on the FlashLight Button
  * Created by kyle on 4/8/2015.
  */
-public class FlashlightModule implements KatrinaModule, SurfaceHolder.Callback {
+public class FlashlightModule implements KatrinaModule, SurfaceHolder.Callback, Runnable {
 
     /**
      * Context this module is attached to
      */
     private Context mContext;
 
+    /**
+     * Camera object to access flash
+     */
     private Camera camera;
 
+    /**
+     * Indicates whether the flashlight is currently on or off
+     */
     private boolean isFlashOn = false;
 
+    /**
+     * Inidicates whether flashlight use is even possible given the hardware
+     */
     private boolean hasFlash;
 
+    /**
+     * Controller of the Surface View. Needed
+     * to activate flashlight
+     */
     private SurfaceHolder mHolder;
 
+    private ExecutorService executor = Executors.newSingleThreadExecutor();
+
+    private KatrinaModuleListener katrinaModuleListener;
+
+    /**
+     * Camera Parameters to set the flashlight on.
+     */
     private Parameters params;
+
+    private int id;
+
+
     @Override
     public void initialize(Context context) {
         mContext = context;
@@ -64,13 +93,12 @@ public class FlashlightModule implements KatrinaModule, SurfaceHolder.Callback {
             alert.show();
             return;
         }
-        getCamera();
     }
 
-    /*
-	 * Get the camera
-	 */
-    private void getCamera() {
+    /**
+     * Retrieve the camera if needed.
+     */
+    private boolean getCamera() {
         if (camera == null) {
             try {
                 camera = Camera.open();
@@ -82,35 +110,43 @@ public class FlashlightModule implements KatrinaModule, SurfaceHolder.Callback {
                 //camera.setPreviewDisplay());
 
                 Log.d("FlashlightMod","Camera Initialized");
+                return true;
             }
             catch (RuntimeException e) {
                 Log.e("FlashlightMod", e.getMessage());
+                return false;
             }
             catch (IOException e) {
                 Log.d("FlashlightMod","Error setting preview: "+e);
+
                 e.printStackTrace();
+                return false;
             }
         }
         else
         {
             Log.d("FlashlightMod","Camera is not null");
+            return true;
         }
     }
 
-    private void turnOnFlash() {
+    /**
+     * Activate the flashlight.
+     * @precondition getCamera() has been called
+     */
+    private synchronized void turnOnFlash() {
         if (!isFlashOn) {
-            if (camera == null || params == null) {
-                Log.d("FlashlightMod","Camera or params null");
+            if(!getCamera())
+            {
                 return;
             }
-
+            isFlashOn = true;
+            updateIcon();
             params = camera.getParameters();
             params.setFlashMode(Parameters.FLASH_MODE_TORCH);
-
             camera.setParameters(params);
             camera.startPreview();
             Log.d("FlashlightMod","Turning flash on");
-            isFlashOn = true;
 
             // changing button/switch image
             //toggleButtonImage();
@@ -118,31 +154,64 @@ public class FlashlightModule implements KatrinaModule, SurfaceHolder.Callback {
 
     }
 
-    /*s
+    /*
 	 * Turning Off flash
+	 * @precondition getCamera() has been called.
 	 */
-    private void turnOffFlash() {
+    private synchronized void turnOffFlash() {
         if (isFlashOn) {
+
 
             if (camera == null || params == null) {
                 return;
             }
-
+            isFlashOn = false;
+            updateIcon();
             params = camera.getParameters();
             params.setFlashMode(Parameters.FLASH_MODE_OFF);
             camera.setParameters(params);
             camera.stopPreview();
-            isFlashOn = false;
+            camera.release();
+            camera = null;
+
             Log.d("FlashlightMod","Turning flash off");
             // changing button/switch image
             //toggleButtonImage();
         }
     }
 
+    private synchronized void updateIcon()
+    {
+        if(katrinaModuleListener != null)
+        {
+            Handler handler = new Handler(mContext.getMainLooper());
+
+            handler.post(new Runnable(){
+
+
+                @Override
+                public void run() {
+                    katrinaModuleListener.changeModuleIconImage(id,getIconImage());
+                }
+            });
+
+        }
+
+    }
+
+
 
     @Override
     public Drawable getIconImage() {
-        return null;
+
+        if(isFlashOn) {
+            return mContext.getResources().getDrawable(R.mipmap.ic_flashlight_on);
+        }
+        else
+        {
+            return mContext.getResources().getDrawable(R.mipmap.ic_flashlight_off);
+        }
+
     }
 
     @Override
@@ -152,6 +221,15 @@ public class FlashlightModule implements KatrinaModule, SurfaceHolder.Callback {
 
     @Override
     public boolean onModuleClick(Context context) {
+
+
+        executor.execute(this);
+        return true;
+    }
+
+    @Override
+    public void run()
+    {
         if(isFlashOn)
         {
             turnOffFlash();
@@ -160,7 +238,6 @@ public class FlashlightModule implements KatrinaModule, SurfaceHolder.Callback {
         {
             turnOnFlash();
         }
-        return true;
     }
 
     @Override
@@ -185,12 +262,12 @@ public class FlashlightModule implements KatrinaModule, SurfaceHolder.Callback {
 
     @Override
     public void setID(int id) {
-
+        this.id = id;
     }
 
     @Override
     public void registerKMListener(KatrinaModuleListener kmListener) {
-
+        katrinaModuleListener = kmListener;
     }
 
     @Override
@@ -216,6 +293,9 @@ public class FlashlightModule implements KatrinaModule, SurfaceHolder.Callback {
     }
 
     @Override
+    /**
+     * Needed to continually update SurfaceHolder
+     */
     public void surfaceCreated(SurfaceHolder holder){
         mHolder = holder;
         try {
@@ -223,6 +303,10 @@ public class FlashlightModule implements KatrinaModule, SurfaceHolder.Callback {
             camera.setPreviewDisplay(mHolder);
         } catch (IOException e){
             e.printStackTrace();
+        }
+        catch(RuntimeException e)
+        {
+
         }
     }
 
@@ -234,7 +318,12 @@ public class FlashlightModule implements KatrinaModule, SurfaceHolder.Callback {
     @Override
     public void surfaceDestroyed(SurfaceHolder holder){
         Log.i("SurfaceHolder", "stopping preview");
-        camera.stopPreview();
+        if(camera != null)
+        {
+            turnOffFlash();
+        }
         mHolder = null;
     }
+
+
 }

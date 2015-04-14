@@ -1,4 +1,4 @@
-package com.katrina.modules.pillreminder;
+package com.katrina.modules.magnify;
 
 import android.content.Context;
 import android.content.Intent;
@@ -9,46 +9,29 @@ import com.katrina.modules.KatrinaModule;
 import com.katrina.modules.KatrinaModuleListener;
 import com.katrina.ui.R;
 
-import java.util.UUID;
-
 /**
- * This Module is used for the Katrina Pill Reminder.
- * All this module does is point the icon to the Pill_Reminder_Main Activity.
- * Created by kyle on 4/5/2015.
+ * Created by kyle on 4/13/2015.
  */
-public class PillReminderModule implements KatrinaModule {
+public class MagnifyModule implements KatrinaModule {
 
-    /**
-     * ID to be set.
-     */
-    private int id;
-
-    /**
-     * Unique ID
-     */
-    private UUID uniqueID = UUID.randomUUID();
-
-    /**
-     * Context this module is attached to.
-     */
-    private Context context;
+    private Context mContext;
 
     @Override
     public Drawable getIconImage() {
 
-        return context.getResources().getDrawable(R.mipmap.ic_pill);
+        return mContext.getResources().getDrawable(R.mipmap.ic_magnifier);
+
     }
 
     @Override
     public String getName() {
-        return context.getString(R.string.pill_reminder_name);
+        return "Magnifier";
     }
 
     @Override
-    public boolean onModuleClick(Context c) {
-
-        c.startActivity(new Intent(c,Pill_Reminder_Main.class));
-
+    public boolean onModuleClick(Context context) {
+        Intent intent = new Intent(context,Magnifier.class);
+        context.startActivity(intent);
         return true;
     }
 
@@ -74,7 +57,7 @@ public class PillReminderModule implements KatrinaModule {
 
     @Override
     public void setID(int id) {
-        this.id = id;
+
     }
 
     @Override
@@ -94,12 +77,12 @@ public class PillReminderModule implements KatrinaModule {
 
     @Override
     public String getUniqueID() {
-        return uniqueID.toString();
+        return null;
     }
 
     @Override
     public void initialize(Context context) {
-        this.context = context;
+        this.mContext = context;
     }
 
     @Override
